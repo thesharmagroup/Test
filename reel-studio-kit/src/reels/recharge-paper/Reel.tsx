@@ -37,7 +37,7 @@ const poseCues: PoseCue[] = [
   { at: 12.5, pose: "point-right" },
   { at: 16.2, pose: "two" },
   { at: 20.5, pose: "present" },
-  { at: 26.1, pose: "thinking" },
+  { at: 26.1, pose: "explain" },
   { at: 29.4, pose: "thumbs-up" },
   { at: 31.2, pose: "finger-up" },
   { at: 35.2, pose: "shrug" },
@@ -48,16 +48,17 @@ const KEYWORDS = ["recharge", "249", "Jio", "Airtel", "25", "5G", "20", "billion
 
 const PILL_TOP = 410;
 const CARD_TOP = 510;
-const CARD_LEFT = 150;
-const AV = { x: SAFE.left, y: 1060, size: 480 };
+const CARD_LEFT = 460;
+const CARD_W = 500;
+const AV = { x: 80, y: 520, size: 1020 };
 
 const Slot: React.FC<{ scene: number; at: number; pill: React.ReactNode; children: React.ReactNode }> = ({ scene, at, pill, children }) => (
   <>
-    <div style={{ position: "absolute", left: SAFE_BOX.x, top: PILL_TOP, width: SAFE_BOX.width }}>{pill}</div>
-    <div style={{ position: "absolute", left: CARD_LEFT, top: CARD_TOP, width: 780 }}>
+    <div style={{ position: "absolute", left: CARD_LEFT, top: PILL_TOP, width: CARD_W }}>{pill}</div>
+    <div style={{ position: "absolute", left: CARD_LEFT, top: CARD_TOP, width: CARD_W }}>
       <GhostStack at={at} />
       {children}
-      <div style={{ width: 680, marginTop: 30 }}>
+      <div style={{ width: CARD_W, marginTop: 28 }}>
         <Dots count={7} active={scene} />
       </div>
     </div>
@@ -69,19 +70,19 @@ const FollowCard: React.FC<{ at: number; followAt: number; handle: string }> = (
   const btn = usePop(followAt);
   return (
     <div data-el="endcard" data-kind="content" style={{ ...card.style, background: "#fff", borderRadius: 36, padding: "44px 48px", boxShadow: "0 30px 70px rgba(60,30,10,0.16)", textAlign: "center" }}>
-      <div style={{ fontFamily: SERIF, fontSize: 56, color: INK, lineHeight: 1.1 }}>Aise aur updates ke liye</div>
+      <div style={{ fontFamily: SERIF, fontSize: 46, color: INK, lineHeight: 1.1 }}>Aise aur updates ke liye</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 22, marginTop: 30 }}>
         <div style={{ width: 84, height: 84, borderRadius: 42, background: RED, color: "#fff", fontFamily: SANS, fontWeight: 900, fontSize: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>A</div>
-        <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 50, color: INK }}>{handle}</div>
+        <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 38, color: INK }}>{handle}</div>
       </div>
       <div style={{ ...btn.style, display: "inline-block", marginTop: 34 }}>
-        <div style={{ background: INK, color: "#fff", fontFamily: SANS, fontWeight: 900, fontSize: 56, padding: "18px 56px", borderRadius: 60, letterSpacing: 2 }}>FOLLOW +</div>
+        <div style={{ background: INK, color: "#fff", fontFamily: SANS, fontWeight: 900, fontSize: 46, padding: "16px 48px", borderRadius: 60, letterSpacing: 2 }}>FOLLOW +</div>
       </div>
     </div>
   );
 };
 
-export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", debugSafeZones, probe }) => {
+export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing", debugSafeZones, probe }) => {
   const m = useMouth(mouth, words);
   const pb = paperBrand(brand.handle);
   return (
@@ -89,10 +90,17 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", 
       <PaperGrid />
       <Header title="Recharge mehnga kyun hua?" handle={pb.handle} x={SAFE_BOX.x} y={SAFE.top + 16} width={SAFE_BOX.width} />
 
+      {avatar !== "none" ? (
+        <div style={{ position: "absolute", left: AV.x, top: AV.y }}>
+          <Avatar style={avatar} mouth={m} cues={poseCues} size={AV.size} />
+        </div>
+      ) : null}
+
       <SceneBlock name="hook" from={S.hook[0]} to={S.hook[1]}>
         <Slot scene={0} at={0} pill={<NumberPill tag="JIO" text="1GB/day plan" at={0} />}>
           <InfoCard n="!" icon="₹" title="Naya daam" at={0} footer="Source: TechCrunch">
-            <Stat prefix="₹" from={209} to={249} at={t.at(5, 1.8)} frames={20} label="pehle ₹209" />
+            <Stat prefix="₹" from={209} to={249} at={t.at(5, 1.8)} frames={20} />
+            <Body at={t.at(5, 1.8)}>pehle ₹209 tha</Body>
           </InfoCard>
         </Slot>
       </SceneBlock>
@@ -112,7 +120,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", 
             <Body at={t.at(30, 11.2)}>Sirf airwaves par kharch</Body>
             <Stat prefix="$" to={20} from={0} suffix="B+" at={t.at(34, 12.6)} />
           </InfoCard>
-          <Stamp text="paisa wapas chahiye" at={t.at(41, 15.1)} rotate={-6} style={{ position: "absolute", left: 250, top: 40 }} />
+          <Stamp text="paisa wapas!" at={t.at(41, 15.1)} rotate={-6} style={{ position: "absolute", left: 170, top: 34 }} />
         </Slot>
       </SceneBlock>
 
@@ -139,7 +147,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", 
             <Body at={t.at(77, 27.3)}>Airtel ka ARPU</Body>
             <Stat prefix="₹" from={211} to={233} at={t.at(82, 28.5)} frames={27} />
           </InfoCard>
-          <Stamp text="+₹22" at={t.at(85, 30.4)} rotate={8} style={{ position: "absolute", left: 470, top: 330 }} />
+          <Stamp text="+₹22" at={t.at(85, 30.4)} rotate={8} style={{ position: "absolute", left: 300, top: 300 }} />
         </Slot>
       </SceneBlock>
 
@@ -149,23 +157,18 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", 
             <Body at={t.at(95, 34.2)}>Analysts ka andaaza</Body>
             <Stat prefix="10–" from={10} to={15} suffix="%" at={t.at(100, 35.8)} frames={12} />
           </InfoCard>
-          <Stamp text="abhi confirm nahi" at={t.at(108, 37.5)} rotate={-7} style={{ position: "absolute", left: 290, top: 40 }} />
+          <Stamp text="confirm nahi" at={t.at(108, 37.5)} rotate={-7} style={{ position: "absolute", left: 170, top: 34 }} />
         </Slot>
       </SceneBlock>
 
       <SceneBlock name="end" from={S.end[0]} to={S.end[1]}>
-        <div style={{ position: "absolute", left: SAFE_BOX.x + 40, top: PILL_TOP + 40, width: SAFE_BOX.width - 80 }}>
+        <div style={{ position: "absolute", left: CARD_LEFT, top: PILL_TOP + 40, width: CARD_W }}>
           <FollowCard at={S.end[0]} followAt={t.at(117, 40.3)} handle={pb.handle} />
         </div>
       </SceneBlock>
 
-      {avatar !== "none" ? (
-        <div style={{ position: "absolute", left: AV.x, top: AV.y }}>
-          <Avatar style={avatar} mouth={m} cues={poseCues} size={AV.size} />
-        </div>
-      ) : null}
-      <div style={{ position: "absolute", left: 560, top: 1110, width: 400, height: 420, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <KineticWords words={words} keywords={KEYWORDS} width={400} />
+      <div style={{ position: "absolute", left: 470, top: 1010, width: 490, height: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <KineticWords words={words} keywords={KEYWORDS} width={490} />
       </div>
     </ReelFrame>
   );

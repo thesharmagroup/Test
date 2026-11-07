@@ -80,10 +80,10 @@ export const GhostStack: React.FC<{ at: number }> = ({ at }) => {
           key={i}
           style={{
             position: "absolute",
-            left: 330 + i * 150,
+            left: 250 + i * 80,
             top: 60 + i * 24,
-            width: 430,
-            height: 420,
+            width: 320,
+            height: 380,
             background: "#FFFFFF",
             borderRadius: 32,
             opacity: 0.55 - i * 0.15,
@@ -106,7 +106,7 @@ export const InfoCard: React.FC<{
   footer?: string;
   children?: React.ReactNode;
   width?: number;
-}> = ({ n, icon, title, at, footer, children, width = 680 }) => {
+}> = ({ n, icon, title, at, footer, children, width = 500 }) => {
   const { style } = useSlide(at);
   return (
     <div
@@ -118,7 +118,7 @@ export const InfoCard: React.FC<{
         width,
         background: "#FFFFFF",
         borderRadius: 36,
-        padding: "40px 52px 34px 44px",
+        padding: "36px 46px 30px 40px",
         boxShadow: "0 30px 70px rgba(60, 30, 10, 0.16), 0 6px 14px rgba(0,0,0,0.06)",
         fontFamily: SANS,
         color: INK,
@@ -128,13 +128,13 @@ export const InfoCard: React.FC<{
       <div style={{ position: "absolute", left: -18, top: -18, width: 66, height: 66, borderRadius: 33, background: RED, color: "#fff", fontWeight: 800, fontSize: 30, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px rgba(0,0,0,0.15)" }}>{n}</div>
       <div
         style={{
-          width: 110,
-          height: 110,
+          width: 96,
+          height: 96,
           borderRadius: 30,
           background: INK,
           color: "#fff",
           fontWeight: 800,
-          fontSize: icon.length > 2 ? 36 : 56,
+          fontSize: icon.length > 2 ? 26 : 52,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -142,12 +142,12 @@ export const InfoCard: React.FC<{
       >
         {icon}
       </div>
-      <div style={{ marginTop: 22, fontSize: 64, fontWeight: 900, letterSpacing: -1.5, lineHeight: 1 }}>
+      <div style={{ marginTop: 20, fontSize: 54, fontWeight: 900, letterSpacing: -1.5, lineHeight: 1 }}>
         <span style={{ borderBottom: `7px solid ${RED}`, paddingBottom: 2 }}>{title}</span>
       </div>
       <div style={{ marginTop: 18 }}>{children}</div>
       {footer ? (
-        <div style={{ marginTop: 20, paddingTop: 16, borderTop: `3px solid ${INK}14`, fontSize: 30, fontWeight: 600, opacity: 0.75 }}>{footer}</div>
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: `3px solid ${INK}14`, fontSize: 26, fontWeight: 600, opacity: 0.75 }}>{footer}</div>
       ) : null}
     </div>
   );
@@ -162,7 +162,7 @@ const usePopIn = (at: number) => {
 /** Serif body line inside a card; pops on its word. */
 export const Body: React.FC<{ at: number; children: React.ReactNode }> = ({ at, children }) => {
   const style = usePopIn(at);
-  return <div style={{ ...style, transformOrigin: "left center", fontFamily: SERIF, fontSize: 46, lineHeight: 1.15, color: `${INK}CC` }}>{children}</div>;
+  return <div style={{ ...style, transformOrigin: "left center", fontFamily: SERIF, fontSize: 40, lineHeight: 1.15, color: `${INK}CC` }}>{children}</div>;
 };
 
 /** Big red number line inside a card; counts up from `from`. */
@@ -180,12 +180,12 @@ export const Stat: React.FC<{ at: number; to: number; from?: number; prefix?: st
   const v = interpolate(frame - at, [0, frames], [from ?? to, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
   return (
     <div style={{ ...style, transformOrigin: "left center", display: "flex", alignItems: "baseline", gap: 18, marginTop: 6 }}>
-      <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 104, color: RED, letterSpacing: -2, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: prefix.length + suffix.length > 3 ? 78 : 88, color: RED, letterSpacing: -2, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
         {prefix}
         {Math.round(v)}
         {suffix}
       </div>
-      {label ? <div style={{ fontFamily: SERIF, fontSize: 44, color: INK }}>{label}</div> : null}
+      {label ? <div style={{ fontFamily: SERIF, fontSize: 40, color: INK }}>{label}</div> : null}
     </div>
   );
 };
@@ -204,7 +204,7 @@ export const Stamp: React.FC<{ text: string; at: number; rotate?: number; style?
   const pop = usePop(at);
   return (
     <div data-el="sticker" data-kind="content" data-overlap-ok="card" style={{ ...style, ...pop.style, transform: `${pop.style.transform} rotate(${rotate * pop.progress}deg)` }}>
-      <div style={{ border: `5px solid ${RED}`, color: RED, background: "#FFFFFFEE", fontFamily: SANS, fontWeight: 900, fontSize: 40, padding: "10px 26px", borderRadius: 14, letterSpacing: 1, textTransform: "uppercase", whiteSpace: "nowrap" }}>
+      <div style={{ border: `5px solid ${RED}`, color: RED, background: "#FFFFFFEE", fontFamily: SANS, fontWeight: 900, fontSize: 34, padding: "8px 22px", borderRadius: 14, letterSpacing: 1, textTransform: "uppercase", whiteSpace: "nowrap" }}>
         {text}
       </div>
     </div>
