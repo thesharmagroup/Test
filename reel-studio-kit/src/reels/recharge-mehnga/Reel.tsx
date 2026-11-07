@@ -28,7 +28,7 @@ const S = {
   end: [t.at(112, 38.7), t.duration()],
 } as const;
 
-// Sprite avatars only (the default flat mascot ignores these).
+// Gestures for the "person" and sprite avatars (the flat robot ignores these).
 const poseCues: PoseCue[] = [
   { at: 0, pose: "shrug" },
   { at: 3.2, pose: "explain" },
@@ -42,7 +42,7 @@ const poseCues: PoseCue[] = [
 
 const box = (top: number): React.CSSProperties => ({ position: "absolute", left: SAFE_BOX.x, top, width: SAFE_BOX.width });
 
-export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "flat", debugSafeZones, probe }) => {
+export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "person", debugSafeZones, probe }) => {
   const m = useMouth(mouth, words);
   return (
     <ReelFrame brand={brand} audio={AUDIO} debugSafeZones={debugSafeZones} probe={probe}>

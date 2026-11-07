@@ -5,7 +5,7 @@ import { BrandProvider, useBrand } from "../brand-context";
 import { LayoutProbe } from "./probe";
 import { SafeZones } from "./SafeZones";
 
-export type AvatarStyle = "flat" | "illustrated" | "pixel" | "none";
+export type AvatarStyle = "flat" | "person" | "illustrated" | "pixel" | "none";
 
 /** Props every reel accepts. `npm run check` and the studio use the last two. */
 export type ReelProps = {
