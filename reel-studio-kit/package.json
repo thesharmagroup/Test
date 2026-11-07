@@ -16,7 +16,8 @@
     "setup:captions": "bash tools/setup-captions.sh",
     "demo:assets": "node tools/demo/make-demo.mjs",
     "demo": "node tools/render.mjs Demo",
-    "sprites:placeholders": "node tools/make-placeholder-sprites.mjs"
+    "sprites:placeholders": "node tools/make-placeholder-sprites.mjs",
+    "sfx": "tools/.venv/bin/python tools/sfx/make-sfx.py"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.538",

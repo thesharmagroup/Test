@@ -6,13 +6,13 @@ import { brand as myBrand } from "../../brand";
 import { Avatar } from "../../avatars/Avatar";
 import { useMouth } from "../../avatars/useMouth";
 import type { PoseCue } from "../../avatars/SpritePlayer";
-import { ReelFrame, SceneBlock, type ReelProps } from "../../components";
+import { ReelFrame, SceneBlock, SfxTrack, type ReelProps, type SfxCue } from "../../components";
 import { usePop } from "../../components/pop";
 import { SAFE, SAFE_BOX } from "../../layout";
 import { timing } from "../../timing";
 import mouth from "../../../public/reels/recharge-mehnga/mouth.json";
 import words from "../../../public/reels/recharge-mehnga/captions.words.json";
-import { Body, Dots, GhostStack, Header, INK, InfoCard, KineticWords, NumberPill, PaperGrid, RED, SANS, SERIF, Stamp, Stat, paperBrand } from "./paper";
+import { Body, Dots, GhostStack, Header, INK, InfoCard, KineticWords, NumberPill, PaperGrid, RED, SANS, SERIF, Stamp, Stat, kineticChunks, paperBrand, typeFrames } from "./paper";
 
 export const t = timing(words);
 export const AUDIO = "reels/recharge-mehnga/vo.wav";
@@ -45,6 +45,44 @@ const poseCues: PoseCue[] = [
 ];
 
 const KEYWORDS = ["recharge", "249", "Jio", "Airtel", "25", "5G", "20", "billion", "ARPU", "kamai", "210", "300", "quarter", "233", "twist", "last", "15", "confirm", "follow"];
+
+// Card text lines (typed out with keyboard sound) and number count-ups, by word.
+const TYPED: [number, string][] = [
+  [t.at(5, 1.8), "pehle ₹209 tha"],
+  [t.at(16, 5.9), "ke plans mehnge"],
+  [t.at(30, 11.2), "Sirf airwaves par kharch"],
+  [t.at(49, 18.1), "Ek user se har mahine ki kamai"],
+  [t.at(69, 24.8), "Target: ₹300 se upar"],
+  [t.at(77, 27.3), "Airtel ka ARPU"],
+  [t.at(95, 34.2), "Analysts ka andaaza"],
+];
+const COUNTS: [number, number][] = [
+  [t.at(5, 1.8), 20],
+  [t.at(19, 6.9), 18],
+  [t.at(34, 12.6), 18],
+  [t.at(62, 22.5), 18],
+  [t.at(82, 28.5), 27],
+  [t.at(100, 35.8), 12],
+];
+const typed = (at: number) => TYPED.find(([a]) => a === at)?.[1] ?? "";
+
+const { chunks, keyOf } = kineticChunks(words, KEYWORDS);
+const SFX: SfxCue[] = [
+  // card slides in on every scene
+  ...[S.hook, S.hike, S.fiveG, S.arpu, S.airtel, S.result, S.twist, S.end].map(([at]) => ({ name: "whoosh" as const, at })),
+  // pills pop
+  ...[S.hook, S.hike, S.fiveG, S.arpu, S.result, S.twist].map(([at]) => ({ name: "click" as const, at: at + 3 })),
+  // typing and counters
+  ...TYPED.map(([at, text]) => ({ name: "typing" as const, at, frames: typeFrames(text) })),
+  ...COUNTS.map(([at, frames]) => ({ name: "counter" as const, at, frames })),
+  // stamps
+  ...[t.at(41, 15.1), t.at(85, 30.4), t.at(108, 37.5)].map((at) => ({ name: "stamp" as const, at })),
+  // a soft pop on each big kinetic word
+  ...chunks.map((_, k) => keyOf[k]).filter((i) => i >= 0).map((i) => ({ name: "pop" as const, at: t.at(i) })),
+  // end card
+  { name: "ding", at: S.end[0] + 4 },
+  { name: "click", at: t.at(117, 40.3), volume: 0.6 },
+];
 
 const PILL_TOP = 410;
 const CARD_TOP = 510;
@@ -88,6 +126,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
   return (
     <ReelFrame brand={pb} audio={AUDIO} debugSafeZones={debugSafeZones} probe={probe}>
       <PaperGrid />
+      <SfxTrack cues={SFX} />
       <Header title="Recharge mehnga kyun hua?" handle={pb.handle} x={SAFE_BOX.x} y={SAFE.top + 16} width={SAFE_BOX.width} />
 
       {avatar !== "none" ? (
@@ -100,7 +139,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
         <Slot scene={0} at={0} pill={<NumberPill tag="JIO" text="1GB/day plan" at={0} />}>
           <InfoCard n="!" icon="₹" title="Naya daam" at={0} footer="Source: TechCrunch">
             <Stat prefix="₹" from={209} to={249} at={t.at(5, 1.8)} frames={20} />
-            <Body at={t.at(5, 1.8)}>pehle ₹209 tha</Body>
+            <Body at={t.at(5, 1.8)}>{typed(t.at(5, 1.8))}</Body>
           </InfoCard>
         </Slot>
       </SceneBlock>
@@ -108,7 +147,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
       <SceneBlock name="hike" from={S.hike[0]} to={S.hike[1]}>
         <Slot scene={1} at={S.hike[0]} pill={<NumberPill tag="3 JULY" text="2024" at={S.hike[0]} />}>
           <InfoCard n="↑" icon="%" title="Jio + Airtel" at={S.hike[0]} footer="Source: Business Today">
-            <Body at={t.at(16, 5.9)}>ke plans mehnge</Body>
+            <Body at={t.at(16, 5.9)}>{typed(t.at(16, 5.9))}</Body>
             <Stat prefix="10–" from={10} to={25} suffix="%" at={t.at(19, 6.9)} label="tak" />
           </InfoCard>
         </Slot>
@@ -117,7 +156,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
       <SceneBlock name="fiveG" from={S.fiveG[0]} to={S.fiveG[1]}>
         <Slot scene={2} at={S.fiveG[0]} pill={<NumberPill tag="#01" text="Wajah one" at={S.fiveG[0]} />}>
           <InfoCard n="01" icon="5G" title="5G spectrum" at={S.fiveG[0]} footer="Source: TechCrunch">
-            <Body at={t.at(30, 11.2)}>Sirf airwaves par kharch</Body>
+            <Body at={t.at(30, 11.2)}>{typed(t.at(30, 11.2))}</Body>
             <Stat prefix="$" to={20} from={0} suffix="B+" at={t.at(34, 12.6)} />
           </InfoCard>
           <Stamp text="paisa wapas!" at={t.at(41, 15.1)} rotate={-6} style={{ position: "absolute", left: 170, top: 34 }} />
@@ -127,7 +166,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
       <SceneBlock name="arpu" from={S.arpu[0]} to={S.arpu[1]}>
         <Slot scene={3} at={S.arpu[0]} pill={<NumberPill tag="#02" text="Wajah two" at={S.arpu[0]} />}>
           <InfoCard n="02" icon="ARPU" title="ARPU" at={S.arpu[0]} footer="Average Revenue Per User">
-            <Body at={t.at(49, 18.1)}>Ek user se har mahine ki kamai</Body>
+            <Body at={t.at(49, 18.1)}>{typed(t.at(49, 18.1))}</Body>
           </InfoCard>
         </Slot>
       </SceneBlock>
@@ -136,7 +175,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
         <Slot scene={3} at={S.airtel[0]} pill={<NumberPill tag="#02" text="Wajah two" at={S.airtel[0] - 30} />}>
           <InfoCard n="02" icon="A" title="Airtel ARPU" at={S.airtel[0]} footer="Source: TechCrunch">
             <Stat prefix="₹" from={150} to={210} at={t.at(62, 22.5)} label="tha" />
-            <Body at={t.at(69, 24.8)}>Target: ₹300 se upar</Body>
+            <Body at={t.at(69, 24.8)}>{typed(t.at(69, 24.8))}</Body>
           </InfoCard>
         </Slot>
       </SceneBlock>
@@ -144,7 +183,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
       <SceneBlock name="result" from={S.result[0]} to={S.result[1]}>
         <Slot scene={4} at={S.result[0]} pill={<NumberPill tag="RESULT" text="Hike ke baad" at={S.result[0]} />}>
           <InfoCard n="✓" icon="↑" title="1 quarter mein" at={S.result[0]} footer="Source: ThePrint / ANI">
-            <Body at={t.at(77, 27.3)}>Airtel ka ARPU</Body>
+            <Body at={t.at(77, 27.3)}>{typed(t.at(77, 27.3))}</Body>
             <Stat prefix="₹" from={211} to={233} at={t.at(82, 28.5)} frames={27} />
           </InfoCard>
           <Stamp text="+₹22" at={t.at(85, 30.4)} rotate={8} style={{ position: "absolute", left: 300, top: 300 }} />
@@ -154,7 +193,7 @@ export const Reel: React.FC<ReelProps> = ({ brand = myBrand, avatar = "standing"
       <SceneBlock name="twist" from={S.twist[0]} to={S.twist[1]}>
         <Slot scene={5} at={S.twist[0]} pill={<NumberPill tag="#03" text="Twist" at={S.twist[0]} />}>
           <InfoCard n="03" icon="?" title="Agla hike?" at={S.twist[0]} footer="Source: Digit, Cashify">
-            <Body at={t.at(95, 34.2)}>Analysts ka andaaza</Body>
+            <Body at={t.at(95, 34.2)}>{typed(t.at(95, 34.2))}</Body>
             <Stat prefix="10–" from={10} to={15} suffix="%" at={t.at(100, 35.8)} frames={12} />
           </InfoCard>
           <Stamp text="confirm nahi" at={t.at(108, 37.5)} rotate={-7} style={{ position: "absolute", left: 170, top: 34 }} />

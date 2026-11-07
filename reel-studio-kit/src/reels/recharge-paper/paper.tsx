@@ -159,10 +159,27 @@ const usePopIn = (at: number) => {
   return { ...style, transform: `translateY(${(1 - progress) * 30}px) scale(${Math.min(1, 0.6 + 0.4 * progress)})` } as React.CSSProperties;
 };
 
-/** Serif body line inside a card; pops on its word. */
+/** Typewriter speed for card text (characters per frame). */
+export const TYPE_CPF = 1.4;
+/** How many frames a line of `text` takes to type out. */
+export const typeFrames = (text: string) => Math.ceil(text.length / TYPE_CPF);
+
+/** Serif body line inside a card. Plain text types itself out from `at`; the rest of the line keeps its space. */
 export const Body: React.FC<{ at: number; children: React.ReactNode }> = ({ at, children }) => {
+  const frame = useCurrentFrame();
   const style = usePopIn(at);
-  return <div style={{ ...style, transformOrigin: "left center", fontFamily: SERIF, fontSize: 40, lineHeight: 1.15, color: `${INK}CC` }}>{children}</div>;
+  const base: React.CSSProperties = { transformOrigin: "left center", fontFamily: SERIF, fontSize: 40, lineHeight: 1.15, color: `${INK}CC` };
+  if (typeof children !== "string") return <div style={{ ...style, ...base }}>{children}</div>;
+  const chars = Array.from(children);
+  const shown = Math.max(0, Math.min(chars.length, Math.floor((frame - at) * TYPE_CPF)));
+  const typing = shown > 0 && shown < chars.length;
+  return (
+    <div style={{ ...base, opacity: frame >= at ? 1 : 0 }}>
+      {chars.slice(0, shown).join("")}
+      {typing ? <span style={{ display: "inline-block", width: 0, borderLeft: `3px solid ${RED}`, height: "0.9em", verticalAlign: "-0.1em" }} /> : null}
+      <span style={{ opacity: 0 }}>{chars.slice(shown).join("")}</span>
+    </div>
+  );
 };
 
 /** Big red number line inside a card; counts up from `from`. */
@@ -220,13 +237,9 @@ const STOP = new Set("ab ka ki ke ko ne se hai hain tha aur ye wo yaani ek par m
  * Kinetic captions next to the character: 1-3 words at a time, stacked.
  * The key word of each chunk is big, bold, red and uppercase; the rest are small serif.
  */
-export const KineticWords: React.FC<{ words: Word[]; keywords: string[]; width: number; maxPerChunk?: number }> = ({ words, keywords, width, maxPerChunk = 3 }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const t = frame / fps;
+/** Split words into caption chunks and pick each chunk's big word (-1 = none). */
+export const kineticChunks = (words: Word[], keywords: string[], maxPerChunk = 3) => {
   const keys = new Set(keywords.map(clean));
-
-  // Chunks break on punctuation or after maxPerChunk words.
   const chunks: number[][] = [];
   let cur: number[] = [];
   words.forEach((w, i) => {
@@ -237,6 +250,23 @@ export const KineticWords: React.FC<{ words: Word[]; keywords: string[]; width: 
     }
   });
   if (cur.length) chunks.push(cur);
+  // Key word: a listed keyword, else a number, else the longest word; never a filler word.
+  const score = (i: number) => {
+    const c = clean(words[i].word);
+    return (keys.has(c) ? 100 : 0) + (/\d/.test(c) ? 50 : 0) + c.length;
+  };
+  const keyOf = chunks.map((chunk) => {
+    const candidates = chunk.filter((i) => !STOP.has(clean(words[i].word)));
+    return candidates.length ? candidates.reduce((a, b) => (score(b) > score(a) ? b : a), candidates[0]) : -1;
+  });
+  return { chunks, keyOf };
+};
+
+export const KineticWords: React.FC<{ words: Word[]; keywords: string[]; width: number; maxPerChunk?: number }> = ({ words, keywords, width, maxPerChunk = 3 }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const { chunks, keyOf } = kineticChunks(words, keywords, maxPerChunk);
 
   const idx = chunks.findIndex((c, k) => t >= words[c[0]].start - 0.05 && (k === chunks.length - 1 || t < words[chunks[k + 1][0]].start - 0.05));
   if (idx < 0) return null;
@@ -244,13 +274,7 @@ export const KineticWords: React.FC<{ words: Word[]; keywords: string[]; width: 
   // Hold the last chunk a little after speech ends, then clear.
   if (t > words[chunk[chunk.length - 1]].end + 0.6) return null;
 
-  // Key word: a listed keyword, else a number, else the longest word.
-  const score = (i: number) => {
-    const c = clean(words[i].word);
-    return (keys.has(c) ? 100 : 0) + (/\d/.test(c) ? 50 : 0) + c.length;
-  };
-  const candidates = chunk.filter((i) => !STOP.has(clean(words[i].word)));
-  const key = candidates.length ? candidates.reduce((a, b) => (score(b) > score(a) ? b : a), candidates[0]) : -1;
+  const key = keyOf[idx];
 
   return (
     <div data-el="captions" data-kind="caption" style={{ width, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
