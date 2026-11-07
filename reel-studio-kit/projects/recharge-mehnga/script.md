@@ -21,10 +21,10 @@ Shown: big "₹209 → ₹249" title card from frame 0.
 "Lekin asli twist: ye last hike nahi hai. Analysts ek aur 10 se 15 percent hike ka andaaza laga rahe hain, abhi confirm nahi hua."
 Shown: "Next hike?" card with "10-15%" and a "not confirmed" sticker.
 
-## CTA (comment keyword)
+## CTA
 
-"Sasta plan chahiye? Comment PLAN, main list bhej dunga."
-Keyword: PLAN. What you send: a short list of the cheapest current Jio, Airtel and Vi plans. (Only keep this CTA if you will actually send that list.)
+"Aise aur updates ke liye follow karo."
+Shown: end card with FOLLOW and @adityaak_47. (Follow CTA instead of a comment keyword, as asked.)
 
 ## Facts and sources
 
@@ -39,6 +39,6 @@ Dropped: Vi's exact 2024 hike range (page not opened), any 2026 hike as fact (on
 
 ## Spoken script
 
-209 rupaye ka recharge ab 249 ka kyun? 3 July 2024 ko Jio aur Airtel ne plans 10 se 25 percent tak mehnge kar diye. Pehli wajah: 5G. Companies ne sirf 5G spectrum par 20 billion dollar se zyada kharch kiye. Ab wo paisa wapas chahiye. Doosri wajah: ARPU, yaani ek user se har mahine ki kamai. Airtel ka ARPU tha lagbhag 210 rupaye, aur company kehti hai ye 300 se upar hona chahiye. Hike ke baad sirf ek quarter mein ye 211 se 233 ho gaya. Lekin asli twist: ye last hike nahi hai. Analysts ek aur 10 se 15 percent hike ka andaaza laga rahe hain, abhi confirm nahi hua. Sasta plan chahiye? Comment PLAN, main list bhej dunga.
+209 rupaye ka recharge ab 249 ka kyun? 3 July 2024 ko Jio aur Airtel ne plans 10 se 25 percent tak mehnge kar diye. Pehli wajah: 5G. Companies ne sirf 5G spectrum par 20 billion dollar se zyada kharch kiye. Ab wo paisa wapas chahiye. Doosri wajah: ARPU, yaani ek user se har mahine ki kamai. Airtel ka ARPU tha lagbhag 210 rupaye, aur company kehti hai ye 300 se upar hona chahiye. Hike ke baad sirf ek quarter mein ye 211 se 233 ho gaya. Lekin asli twist: ye last hike nahi hai. Analysts ek aur 10 se 15 percent hike ka andaaza laga rahe hain, abhi confirm nahi hua. Aise aur updates ke liye follow karo.
 
-Words: 121. Estimated length: about 48 s at 2.5 words/s.
+Words: 119. Estimated length: about 48 s at 2.5 words/s.
