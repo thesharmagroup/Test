@@ -1,1 +1,597 @@
-[]
+[
+  {
+    "word": "209",
+    "start": 0.0,
+    "end": 0.74
+  },
+  {
+    "word": "rupaye",
+    "start": 0.74,
+    "end": 0.94
+  },
+  {
+    "word": "ka",
+    "start": 0.94,
+    "end": 1.08
+  },
+  {
+    "word": "recharge",
+    "start": 1.08,
+    "end": 1.52
+  },
+  {
+    "word": "ab",
+    "start": 1.52,
+    "end": 1.8
+  },
+  {
+    "word": "249",
+    "start": 1.8,
+    "end": 2.2
+  },
+  {
+    "word": "ka",
+    "start": 2.48,
+    "end": 2.66
+  },
+  {
+    "word": "kyun?",
+    "start": 2.66,
+    "end": 2.94
+  },
+  {
+    "word": "3",
+    "start": 3.22,
+    "end": 3.62
+  },
+  {
+    "word": "July",
+    "start": 3.62,
+    "end": 4.04
+  },
+  {
+    "word": "2024",
+    "start": 4.04,
+    "end": 4.56
+  },
+  {
+    "word": "ko",
+    "start": 4.56,
+    "end": 4.98
+  },
+  {
+    "word": "Jio",
+    "start": 4.98,
+    "end": 5.34
+  },
+  {
+    "word": "aur",
+    "start": 5.34,
+    "end": 5.48
+  },
+  {
+    "word": "Airtel",
+    "start": 5.48,
+    "end": 5.76
+  },
+  {
+    "word": "ne",
+    "start": 5.76,
+    "end": 5.92
+  },
+  {
+    "word": "plans",
+    "start": 5.92,
+    "end": 6.32
+  },
+  {
+    "word": "10",
+    "start": 6.32,
+    "end": 6.64
+  },
+  {
+    "word": "se",
+    "start": 6.64,
+    "end": 6.88
+  },
+  {
+    "word": "25",
+    "start": 6.88,
+    "end": 7.5
+  },
+  {
+    "word": "percent",
+    "start": 7.5,
+    "end": 7.6
+  },
+  {
+    "word": "tak",
+    "start": 7.6,
+    "end": 7.78
+  },
+  {
+    "word": "mehnge",
+    "start": 7.78,
+    "end": 8.0
+  },
+  {
+    "word": "kar",
+    "start": 8.0,
+    "end": 8.16
+  },
+  {
+    "word": "diye.",
+    "start": 8.16,
+    "end": 8.36
+  },
+  {
+    "word": "Pehli",
+    "start": 8.82,
+    "end": 9.08
+  },
+  {
+    "word": "wajah:",
+    "start": 9.08,
+    "end": 9.32
+  },
+  {
+    "word": "5G.",
+    "start": 9.32,
+    "end": 10.02
+  },
+  {
+    "word": "Companies",
+    "start": 10.29,
+    "end": 11.08
+  },
+  {
+    "word": "ne",
+    "start": 11.08,
+    "end": 11.2
+  },
+  {
+    "word": "sirf",
+    "start": 11.2,
+    "end": 11.46
+  },
+  {
+    "word": "5G",
+    "start": 11.46,
+    "end": 11.92
+  },
+  {
+    "word": "spectrum",
+    "start": 11.92,
+    "end": 12.34
+  },
+  {
+    "word": "par",
+    "start": 12.34,
+    "end": 12.58
+  },
+  {
+    "word": "20",
+    "start": 12.58,
+    "end": 13.12
+  },
+  {
+    "word": "billion",
+    "start": 13.12,
+    "end": 13.56
+  },
+  {
+    "word": "dollar",
+    "start": 13.56,
+    "end": 13.92
+  },
+  {
+    "word": "se",
+    "start": 13.92,
+    "end": 14.06
+  },
+  {
+    "word": "zyada",
+    "start": 14.06,
+    "end": 14.28
+  },
+  {
+    "word": "kharch",
+    "start": 14.28,
+    "end": 14.52
+  },
+  {
+    "word": "kiye.",
+    "start": 14.52,
+    "end": 14.74
+  },
+  {
+    "word": "Ab",
+    "start": 15.12,
+    "end": 15.32
+  },
+  {
+    "word": "wo",
+    "start": 15.32,
+    "end": 15.38
+  },
+  {
+    "word": "paisa",
+    "start": 15.38,
+    "end": 15.64
+  },
+  {
+    "word": "wapas",
+    "start": 15.64,
+    "end": 15.92
+  },
+  {
+    "word": "chahiye.",
+    "start": 15.92,
+    "end": 16.24
+  },
+  {
+    "word": "Doosri",
+    "start": 16.24,
+    "end": 17.24
+  },
+  {
+    "word": "wajah:",
+    "start": 17.24,
+    "end": 17.48
+  },
+  {
+    "word": "ARPU,",
+    "start": 17.48,
+    "end": 18.06
+  },
+  {
+    "word": "yaani",
+    "start": 18.06,
+    "end": 18.72
+  },
+  {
+    "word": "ek",
+    "start": 18.72,
+    "end": 19.02
+  },
+  {
+    "word": "user",
+    "start": 19.02,
+    "end": 19.34
+  },
+  {
+    "word": "se",
+    "start": 19.34,
+    "end": 19.52
+  },
+  {
+    "word": "har",
+    "start": 19.52,
+    "end": 19.78
+  },
+  {
+    "word": "mahine",
+    "start": 19.78,
+    "end": 20.1
+  },
+  {
+    "word": "ki",
+    "start": 20.1,
+    "end": 20.2
+  },
+  {
+    "word": "kamai.",
+    "start": 20.2,
+    "end": 20.46
+  },
+  {
+    "word": "Airtel",
+    "start": 20.46,
+    "end": 21.38
+  },
+  {
+    "word": "ka",
+    "start": 21.38,
+    "end": 21.52
+  },
+  {
+    "word": "ARPU",
+    "start": 21.52,
+    "end": 21.78
+  },
+  {
+    "word": "tha",
+    "start": 21.78,
+    "end": 22.0
+  },
+  {
+    "word": "lagbhag",
+    "start": 22.0,
+    "end": 22.52
+  },
+  {
+    "word": "210",
+    "start": 22.52,
+    "end": 23.0
+  },
+  {
+    "word": "rupaye,",
+    "start": 23.0,
+    "end": 23.44
+  },
+  {
+    "word": "aur",
+    "start": 23.44,
+    "end": 23.72
+  },
+  {
+    "word": "company",
+    "start": 23.72,
+    "end": 24.04
+  },
+  {
+    "word": "kehti",
+    "start": 24.04,
+    "end": 24.28
+  },
+  {
+    "word": "hai",
+    "start": 24.28,
+    "end": 24.4
+  },
+  {
+    "word": "ye",
+    "start": 24.4,
+    "end": 24.82
+  },
+  {
+    "word": "300",
+    "start": 24.82,
+    "end": 25.12
+  },
+  {
+    "word": "se",
+    "start": 25.12,
+    "end": 25.28
+  },
+  {
+    "word": "upar",
+    "start": 25.28,
+    "end": 25.68
+  },
+  {
+    "word": "hona",
+    "start": 25.74,
+    "end": 25.86
+  },
+  {
+    "word": "chahiye.",
+    "start": 25.86,
+    "end": 26.1
+  },
+  {
+    "word": "Hike",
+    "start": 26.1,
+    "end": 27.0
+  },
+  {
+    "word": "ke",
+    "start": 27.0,
+    "end": 27.12
+  },
+  {
+    "word": "baad",
+    "start": 27.12,
+    "end": 27.28
+  },
+  {
+    "word": "sirf",
+    "start": 27.28,
+    "end": 27.52
+  },
+  {
+    "word": "ek",
+    "start": 27.52,
+    "end": 27.96
+  },
+  {
+    "word": "quarter",
+    "start": 27.96,
+    "end": 28.24
+  },
+  {
+    "word": "mein",
+    "start": 28.24,
+    "end": 28.38
+  },
+  {
+    "word": "ye",
+    "start": 28.38,
+    "end": 28.48
+  },
+  {
+    "word": "211",
+    "start": 28.48,
+    "end": 29.18
+  },
+  {
+    "word": "se",
+    "start": 29.18,
+    "end": 29.38
+  },
+  {
+    "word": "233",
+    "start": 29.38,
+    "end": 30.44
+  },
+  {
+    "word": "ho",
+    "start": 30.44,
+    "end": 30.58
+  },
+  {
+    "word": "gaya.",
+    "start": 30.58,
+    "end": 31.22
+  },
+  {
+    "word": "Lekin",
+    "start": 31.22,
+    "end": 31.58
+  },
+  {
+    "word": "asli",
+    "start": 31.58,
+    "end": 31.84
+  },
+  {
+    "word": "twist:",
+    "start": 31.84,
+    "end": 32.16
+  },
+  {
+    "word": "ye",
+    "start": 32.16,
+    "end": 32.76
+  },
+  {
+    "word": "last",
+    "start": 32.76,
+    "end": 33.04
+  },
+  {
+    "word": "hike",
+    "start": 33.04,
+    "end": 33.22
+  },
+  {
+    "word": "nahi",
+    "start": 33.22,
+    "end": 33.46
+  },
+  {
+    "word": "hai.",
+    "start": 33.46,
+    "end": 33.54
+  },
+  {
+    "word": "Analysts",
+    "start": 34.18,
+    "end": 34.66
+  },
+  {
+    "word": "ek",
+    "start": 34.66,
+    "end": 34.96
+  },
+  {
+    "word": "aur",
+    "start": 34.96,
+    "end": 35.2
+  },
+  {
+    "word": "10",
+    "start": 35.2,
+    "end": 35.54
+  },
+  {
+    "word": "se",
+    "start": 35.54,
+    "end": 35.7
+  },
+  {
+    "word": "15",
+    "start": 35.84,
+    "end": 36.16
+  },
+  {
+    "word": "percent",
+    "start": 36.16,
+    "end": 36.48
+  },
+  {
+    "word": "hike",
+    "start": 36.48,
+    "end": 36.72
+  },
+  {
+    "word": "ka",
+    "start": 36.72,
+    "end": 36.84
+  },
+  {
+    "word": "andaaza",
+    "start": 36.84,
+    "end": 37.08
+  },
+  {
+    "word": "laga",
+    "start": 37.08,
+    "end": 37.26
+  },
+  {
+    "word": "rahe",
+    "start": 37.26,
+    "end": 37.48
+  },
+  {
+    "word": "hain,",
+    "start": 37.48,
+    "end": 37.5
+  },
+  {
+    "word": "abhi",
+    "start": 37.5,
+    "end": 38.08
+  },
+  {
+    "word": "confirm",
+    "start": 38.08,
+    "end": 38.42
+  },
+  {
+    "word": "nahi",
+    "start": 38.42,
+    "end": 38.58
+  },
+  {
+    "word": "hua.",
+    "start": 38.58,
+    "end": 38.68
+  },
+  {
+    "word": "Aise",
+    "start": 38.74,
+    "end": 39.46
+  },
+  {
+    "word": "aur",
+    "start": 39.46,
+    "end": 39.7
+  },
+  {
+    "word": "updates",
+    "start": 39.7,
+    "end": 39.94
+  },
+  {
+    "word": "ke",
+    "start": 39.94,
+    "end": 40.04
+  },
+  {
+    "word": "liye",
+    "start": 40.04,
+    "end": 40.18
+  },
+  {
+    "word": "follow",
+    "start": 40.28,
+    "end": 40.6
+  },
+  {
+    "word": "karo.",
+    "start": 40.6,
+    "end": 40.8
+  }
+]

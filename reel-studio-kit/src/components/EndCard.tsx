@@ -9,11 +9,13 @@ type Props = {
   lead?: string;
   /** Small line under it, e.g. "I will send it to you". */
   sub?: string;
+  /** Small word above the keyword pill. Pass "" to hide it (e.g. a FOLLOW card). */
+  label?: string;
   at?: number;
 };
 
 /** Closing card: lead line, big comment-keyword pill, handle. Pops on the word you pass as `at`. */
-export const EndCard: React.FC<Props> = ({ keyword, lead = "Want it?", sub = "I will send it to you", at = 0 }) => {
+export const EndCard: React.FC<Props> = ({ keyword, lead = "Want it?", sub = "I will send it to you", label = "Comment", at = 0 }) => {
   const b = useBrand();
   const card = usePop(at);
   const pill = usePop(at + 8);
@@ -36,7 +38,7 @@ export const EndCard: React.FC<Props> = ({ keyword, lead = "Want it?", sub = "I 
       }}
     >
       <div style={{ fontSize: 56, fontWeight: 700, opacity: 0.75 }}>{lead}</div>
-      <div style={{ fontSize: 44, fontWeight: 600, margin: "28px 0 12px", opacity: 0.6 }}>Comment</div>
+      {label ? <div style={{ fontSize: 44, fontWeight: 600, margin: "28px 0 12px", opacity: 0.6 }}>{label}</div> : <div style={{ height: 36 }} />}
       <div style={{ ...pill.style, display: "inline-block" }}>
         <div
           style={{
@@ -53,7 +55,7 @@ export const EndCard: React.FC<Props> = ({ keyword, lead = "Want it?", sub = "I 
           {keyword}
         </div>
       </div>
-      <div style={{ fontSize: 44, fontWeight: 600, marginTop: 32, opacity: 0.75 }}>{sub}</div>
+      {sub ? <div style={{ fontSize: 44, fontWeight: 600, marginTop: 32, opacity: 0.75 }}>{sub}</div> : null}
       <div style={{ fontSize: 40, fontWeight: 800, marginTop: 20, color: b.colors.accent }}>{b.handle}</div>
     </div>
   );
