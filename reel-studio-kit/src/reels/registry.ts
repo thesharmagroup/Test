@@ -4,6 +4,7 @@ import type { ReelProps } from "../components";
 import type { Word } from "../timing";
 import { PRESETS } from "../presets";
 import * as demo from "./demo/Reel";
+import * as r_recharge_mehnga from "./recharge-mehnga/Reel";
 // <new-reel-imports>
 
 export type ReelEntry = {
@@ -26,6 +27,7 @@ export const REELS: ReelEntry[] = [
       { suffix: "SoftPastel", props: { brand: PRESETS.softPastel } },
     ],
   },
+  { id: "recharge-mehnga", Component: r_recharge_mehnga.Reel, durationInFrames: r_recharge_mehnga.durationInFrames },
   // <new-reel-entries>
 ];
 
