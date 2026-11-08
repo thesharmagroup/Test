@@ -49,9 +49,9 @@ export const Header: React.FC<{ title: string; handle: string; x: number; y: num
 export const NumberPill: React.FC<{ tag: string; text: string; at: number }> = ({ tag, text, at }) => {
   const { style } = usePop(at);
   return (
-    <div data-el="pill" data-kind="content" style={{ ...style, display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
+    <div data-el="pill" data-kind="content" style={{ ...style, display: "flex", alignItems: "center", justifyContent: "center", gap: 18, whiteSpace: "nowrap" }}>
       <div style={{ background: RED, color: "#fff", fontFamily: SANS, fontWeight: 800, fontSize: 38, padding: "8px 24px", borderRadius: 40 }}>{tag}</div>
-      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 50, color: INK }}>{text}</div>
+      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: text.length > 12 ? 42 : 50, color: INK }}>{text}</div>
     </div>
   );
 };
@@ -132,10 +132,12 @@ export const InfoCard: React.FC<{
       }}
     >
       <div style={{ position: "absolute", right: 18, top: image ? imageHeight + 24 : 40, bottom: 40, width: 9, background: RED, borderRadius: 6 }} />
-      <div style={{ position: "absolute", left: -18, top: -18, width: 66, height: 66, borderRadius: 33, background: RED, color: "#fff", fontWeight: 800, fontSize: 30, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px rgba(0,0,0,0.15)" }}>{n}</div>
+      <div style={{ position: "absolute", zIndex: 3, left: -18, top: -18, width: 66, height: 66, borderRadius: 33, background: RED, color: "#fff", fontWeight: 800, fontSize: 30, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px rgba(0,0,0,0.15)" }}>{n}</div>
       {image ? (
         <div style={{ position: "relative", margin: "-36px -46px 22px -40px", height: imageHeight, borderRadius: "36px 36px 0 0", overflow: "hidden" }}>
-          <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})` }} />
+          {/* Img only makes the renderer wait for the file; the visible photo is a background so the zoom never overflows. */}
+          <Img src={staticFile(image)} style={{ position: "absolute", width: 1, height: 1, opacity: 0 }} />
+          <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${staticFile(image)})`, backgroundSize: `${zoom * 100}% auto`, backgroundPosition: "center 40%", backgroundRepeat: "no-repeat" }} />
           <div style={{ position: "absolute", left: 22, bottom: 18, width: 84, height: 84, borderRadius: 26, background: INK, color: "#fff", fontWeight: 800, fontSize: icon.length > 2 ? 24 : 46, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(0,0,0,0.3)" }}>{icon}</div>
           {credit ? (
             <div style={{ position: "absolute", right: 14, bottom: 12, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 17, fontWeight: 600, padding: "4px 10px", borderRadius: 8 }}>{credit}</div>
@@ -215,7 +217,7 @@ export const Stat: React.FC<{ at: number; to: number; from?: number; prefix?: st
     <div style={{ ...style, transformOrigin: "left center", display: "flex", alignItems: "baseline", gap: 18, marginTop: 6 }}>
       <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: prefix.length + suffix.length > 3 ? 78 : 88, color: RED, letterSpacing: -2, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
         {prefix}
-        {Math.round(v)}
+        {Math.round(v).toLocaleString("en-IN")}
         {suffix}
       </div>
       {label ? <div style={{ fontFamily: SERIF, fontSize: 40, color: INK }}>{label}</div> : null}
@@ -247,7 +249,7 @@ export const Stamp: React.FC<{ text: string; at: number; rotate?: number; style?
 const clean = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
 // Filler words that never become the big red word.
-const STOP = new Set("ab ka ki ke ko ne se hai hain tha aur ye wo yaani ek par mein sirf tak kar diye kiye ho gaya liye rupaye lagbhag abhi nahi hua laga rahe hona karo chahiye wapas kehti ke baad".split(" "));
+const STOP = new Set("ab ka ki ke ko ne se hai hain tha aur ye wo yaani ek par mein sirf tak kar diye kiye ho gaya liye rupaye lagbhag abhi nahi hua laga rahe hona karo chahiye wapas kehti ke baad the laana isme apne aise pehle jo toh aap agar ho bhi".split(" "));
 
 /**
  * Kinetic captions next to the character: 1-3 words at a time, stacked.

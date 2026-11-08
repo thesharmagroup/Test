@@ -1,1 +1,882 @@
-[]
+[
+  {
+    "word": "Ontario",
+    "start": 0.0,
+    "end": 0.82
+  },
+  {
+    "word": "mein",
+    "start": 0.82,
+    "end": 0.94
+  },
+  {
+    "word": "PR",
+    "start": 0.94,
+    "end": 1.26
+  },
+  {
+    "word": "ka",
+    "start": 1.26,
+    "end": 1.48
+  },
+  {
+    "word": "seedha",
+    "start": 1.48,
+    "end": 1.74
+  },
+  {
+    "word": "rasta",
+    "start": 1.74,
+    "end": 2.08
+  },
+  {
+    "word": "band",
+    "start": 2.08,
+    "end": 2.34
+  },
+  {
+    "word": "ho",
+    "start": 2.34,
+    "end": 2.5
+  },
+  {
+    "word": "gaya",
+    "start": 2.5,
+    "end": 2.62
+  },
+  {
+    "word": "hai.",
+    "start": 2.62,
+    "end": 3.48
+  },
+  {
+    "word": "30",
+    "start": 3.48,
+    "end": 3.568
+  },
+  {
+    "word": "May",
+    "start": 3.568,
+    "end": 3.7
+  },
+  {
+    "word": "2026",
+    "start": 3.7,
+    "end": 4.46
+  },
+  {
+    "word": "ko",
+    "start": 4.46,
+    "end": 4.74
+  },
+  {
+    "word": "Ontario",
+    "start": 4.74,
+    "end": 5.2
+  },
+  {
+    "word": "ne",
+    "start": 5.2,
+    "end": 5.32
+  },
+  {
+    "word": "apne",
+    "start": 5.32,
+    "end": 5.54
+  },
+  {
+    "word": "PR",
+    "start": 5.54,
+    "end": 5.94
+  },
+  {
+    "word": "program,",
+    "start": 5.94,
+    "end": 6.48
+  },
+  {
+    "word": "OINP,",
+    "start": 6.58,
+    "end": 7.3
+  },
+  {
+    "word": "ke",
+    "start": 7.3,
+    "end": 7.58
+  },
+  {
+    "word": "saare",
+    "start": 7.58,
+    "end": 7.897
+  },
+  {
+    "word": "9",
+    "start": 7.897,
+    "end": 7.96
+  },
+  {
+    "word": "streams",
+    "start": 7.96,
+    "end": 8.52
+  },
+  {
+    "word": "band",
+    "start": 8.52,
+    "end": 8.7
+  },
+  {
+    "word": "kar",
+    "start": 8.7,
+    "end": 8.86
+  },
+  {
+    "word": "diye.",
+    "start": 8.86,
+    "end": 9.6
+  },
+  {
+    "word": "Isme",
+    "start": 9.6,
+    "end": 9.8
+  },
+  {
+    "word": "Masters",
+    "start": 9.8,
+    "end": 10.32
+  },
+  {
+    "word": "aur",
+    "start": 10.32,
+    "end": 10.42
+  },
+  {
+    "word": "PhD",
+    "start": 10.42,
+    "end": 10.84
+  },
+  {
+    "word": "graduate",
+    "start": 10.84,
+    "end": 11.22
+  },
+  {
+    "word": "streams",
+    "start": 11.22,
+    "end": 11.44
+  },
+  {
+    "word": "bhi",
+    "start": 11.44,
+    "end": 11.54
+  },
+  {
+    "word": "the,",
+    "start": 11.54,
+    "end": 11.84
+  },
+  {
+    "word": "jo",
+    "start": 11.84,
+    "end": 12.14
+  },
+  {
+    "word": "Ontario",
+    "start": 12.14,
+    "end": 12.62
+  },
+  {
+    "word": "se",
+    "start": 12.62,
+    "end": 12.72
+  },
+  {
+    "word": "padhe",
+    "start": 12.72,
+    "end": 12.94
+  },
+  {
+    "word": "students",
+    "start": 12.94,
+    "end": 13.3
+  },
+  {
+    "word": "ke",
+    "start": 13.3,
+    "end": 13.44
+  },
+  {
+    "word": "liye",
+    "start": 13.44,
+    "end": 13.5
+  },
+  {
+    "word": "the.",
+    "start": 13.5,
+    "end": 13.84
+  },
+  {
+    "word": "Naye",
+    "start": 14.49,
+    "end": 14.78
+  },
+  {
+    "word": "streams",
+    "start": 14.78,
+    "end": 15.24
+  },
+  {
+    "word": "aa",
+    "start": 15.24,
+    "end": 15.26
+  },
+  {
+    "word": "rahe",
+    "start": 15.26,
+    "end": 15.382
+  },
+  {
+    "word": "hain,",
+    "start": 15.382,
+    "end": 15.56
+  },
+  {
+    "word": "focus",
+    "start": 15.62,
+    "end": 16.02
+  },
+  {
+    "word": "job",
+    "start": 16.02,
+    "end": 16.44
+  },
+  {
+    "word": "offer",
+    "start": 16.44,
+    "end": 16.6
+  },
+  {
+    "word": "par",
+    "start": 16.6,
+    "end": 16.76
+  },
+  {
+    "word": "hai,",
+    "start": 16.76,
+    "end": 17.06
+  },
+  {
+    "word": "par",
+    "start": 17.2,
+    "end": 17.36
+  },
+  {
+    "word": "puri",
+    "start": 17.36,
+    "end": 17.68
+  },
+  {
+    "word": "details",
+    "start": 17.68,
+    "end": 18.06
+  },
+  {
+    "word": "abhi",
+    "start": 18.06,
+    "end": 18.18
+  },
+  {
+    "word": "confirm",
+    "start": 18.18,
+    "end": 18.62
+  },
+  {
+    "word": "nahi",
+    "start": 18.62,
+    "end": 18.718
+  },
+  {
+    "word": "hain.",
+    "start": 18.718,
+    "end": 18.84
+  },
+  {
+    "word": "Ontario",
+    "start": 19.84,
+    "end": 20.3
+  },
+  {
+    "word": "ko",
+    "start": 20.3,
+    "end": 20.38
+  },
+  {
+    "word": "2026",
+    "start": 20.38,
+    "end": 21.0
+  },
+  {
+    "word": "ke",
+    "start": 21.0,
+    "end": 21.2
+  },
+  {
+    "word": "liye",
+    "start": 21.2,
+    "end": 21.47
+  },
+  {
+    "word": "14,119",
+    "start": 21.54,
+    "end": 22.82
+  },
+  {
+    "word": "nominations",
+    "start": 22.82,
+    "end": 23.38
+  },
+  {
+    "word": "mile",
+    "start": 23.38,
+    "end": 23.52
+  },
+  {
+    "word": "hain.",
+    "start": 23.52,
+    "end": 23.84
+  },
+  {
+    "word": "Aur",
+    "start": 23.84,
+    "end": 24.58
+  },
+  {
+    "word": "5",
+    "start": 24.58,
+    "end": 24.9
+  },
+  {
+    "word": "November",
+    "start": 24.9,
+    "end": 25.24
+  },
+  {
+    "word": "ko",
+    "start": 25.24,
+    "end": 25.4
+  },
+  {
+    "word": "Canada",
+    "start": 25.4,
+    "end": 25.82
+  },
+  {
+    "word": "ka",
+    "start": 25.82,
+    "end": 25.88
+  },
+  {
+    "word": "naya",
+    "start": 25.88,
+    "end": 26.18
+  },
+  {
+    "word": "plan",
+    "start": 26.18,
+    "end": 26.34
+  },
+  {
+    "word": "aaya.",
+    "start": 26.34,
+    "end": 27.18
+  },
+  {
+    "word": "PR",
+    "start": 27.18,
+    "end": 27.5
+  },
+  {
+    "word": "target",
+    "start": 27.5,
+    "end": 27.76
+  },
+  {
+    "word": "2029",
+    "start": 27.76,
+    "end": 28.36
+  },
+  {
+    "word": "tak",
+    "start": 28.36,
+    "end": 28.84
+  },
+  {
+    "word": "3",
+    "start": 28.84,
+    "end": 29.24
+  },
+  {
+    "word": "lakh",
+    "start": 29.24,
+    "end": 29.26
+  },
+  {
+    "word": "80",
+    "start": 29.26,
+    "end": 29.84
+  },
+  {
+    "word": "hazaar",
+    "start": 29.84,
+    "end": 29.86
+  },
+  {
+    "word": "par",
+    "start": 29.86,
+    "end": 30.18
+  },
+  {
+    "word": "hi",
+    "start": 30.18,
+    "end": 30.26
+  },
+  {
+    "word": "rahega.",
+    "start": 30.26,
+    "end": 31.18
+  },
+  {
+    "word": "Naye",
+    "start": 31.18,
+    "end": 31.4
+  },
+  {
+    "word": "students",
+    "start": 31.4,
+    "end": 31.92
+  },
+  {
+    "word": "sirf",
+    "start": 31.92,
+    "end": 32.3
+  },
+  {
+    "word": "1",
+    "start": 32.3,
+    "end": 32.52
+  },
+  {
+    "word": "lakh",
+    "start": 32.52,
+    "end": 32.54
+  },
+  {
+    "word": "50",
+    "start": 32.54,
+    "end": 33.04
+  },
+  {
+    "word": "hazaar",
+    "start": 33.04,
+    "end": 33.06
+  },
+  {
+    "word": "per",
+    "start": 33.06,
+    "end": 33.42
+  },
+  {
+    "word": "saal.",
+    "start": 33.42,
+    "end": 34.4
+  },
+  {
+    "word": "Goal",
+    "start": 34.4,
+    "end": 34.68
+  },
+  {
+    "word": "hai,",
+    "start": 34.68,
+    "end": 35.04
+  },
+  {
+    "word": "temporary",
+    "start": 35.04,
+    "end": 35.48
+  },
+  {
+    "word": "residents",
+    "start": 35.48,
+    "end": 35.9
+  },
+  {
+    "word": "ko",
+    "start": 35.9,
+    "end": 36.0
+  },
+  {
+    "word": "population",
+    "start": 36.0,
+    "end": 36.52
+  },
+  {
+    "word": "ke",
+    "start": 36.52,
+    "end": 36.64
+  },
+  {
+    "word": "5",
+    "start": 36.64,
+    "end": 36.98
+  },
+  {
+    "word": "percent",
+    "start": 36.98,
+    "end": 37.0
+  },
+  {
+    "word": "se",
+    "start": 37.0,
+    "end": 37.4
+  },
+  {
+    "word": "neeche",
+    "start": 37.4,
+    "end": 37.6
+  },
+  {
+    "word": "laana.",
+    "start": 37.6,
+    "end": 38.48
+  },
+  {
+    "word": "Matlab,",
+    "start": 38.48,
+    "end": 38.98
+  },
+  {
+    "word": "jinke",
+    "start": 38.98,
+    "end": 39.42
+  },
+  {
+    "word": "work",
+    "start": 39.42,
+    "end": 39.7
+  },
+  {
+    "word": "permit",
+    "start": 39.7,
+    "end": 39.94
+  },
+  {
+    "word": "khatam",
+    "start": 39.94,
+    "end": 40.18
+  },
+  {
+    "word": "ho",
+    "start": 40.18,
+    "end": 40.34
+  },
+  {
+    "word": "rahe",
+    "start": 40.34,
+    "end": 40.42
+  },
+  {
+    "word": "hain,",
+    "start": 40.42,
+    "end": 40.78
+  },
+  {
+    "word": "unke",
+    "start": 40.84,
+    "end": 41.12
+  },
+  {
+    "word": "liye",
+    "start": 41.12,
+    "end": 41.31
+  },
+  {
+    "word": "race",
+    "start": 41.31,
+    "end": 41.5
+  },
+  {
+    "word": "aur",
+    "start": 41.5,
+    "end": 41.74
+  },
+  {
+    "word": "tight",
+    "start": 41.74,
+    "end": 43.04
+  },
+  {
+    "word": "hai.",
+    "start": 43.04,
+    "end": 43.12
+  },
+  {
+    "word": "Lekin",
+    "start": 43.12,
+    "end": 43.22
+  },
+  {
+    "word": "ek",
+    "start": 43.22,
+    "end": 43.32
+  },
+  {
+    "word": "achhi",
+    "start": 43.32,
+    "end": 43.56
+  },
+  {
+    "word": "khabar",
+    "start": 43.56,
+    "end": 43.78
+  },
+  {
+    "word": "bhi",
+    "start": 43.78,
+    "end": 43.86
+  },
+  {
+    "word": "hai.",
+    "start": 43.86,
+    "end": 44.06
+  },
+  {
+    "word": "2027",
+    "start": 44.25,
+    "end": 45.0
+  },
+  {
+    "word": "mein",
+    "start": 45.0,
+    "end": 45.16
+  },
+  {
+    "word": "Canada",
+    "start": 45.16,
+    "end": 45.54
+  },
+  {
+    "word": "mein",
+    "start": 45.54,
+    "end": 45.6
+  },
+  {
+    "word": "kaam",
+    "start": 45.6,
+    "end": 45.82
+  },
+  {
+    "word": "kar",
+    "start": 45.82,
+    "end": 45.98
+  },
+  {
+    "word": "rahe",
+    "start": 45.98,
+    "end": 46.08
+  },
+  {
+    "word": "workers",
+    "start": 46.26,
+    "end": 46.58
+  },
+  {
+    "word": "ke",
+    "start": 46.58,
+    "end": 46.68
+  },
+  {
+    "word": "liye",
+    "start": 46.68,
+    "end": 46.82
+  },
+  {
+    "word": "ek",
+    "start": 46.82,
+    "end": 47.18
+  },
+  {
+    "word": "time-limited",
+    "start": 47.18,
+    "end": 47.9
+  },
+  {
+    "word": "PR",
+    "start": 47.9,
+    "end": 48.2
+  },
+  {
+    "word": "measure",
+    "start": 48.2,
+    "end": 48.4
+  },
+  {
+    "word": "aayega,",
+    "start": 48.4,
+    "end": 49.36
+  },
+  {
+    "word": "details",
+    "start": 49.36,
+    "end": 49.7
+  },
+  {
+    "word": "abhi",
+    "start": 49.7,
+    "end": 49.9
+  },
+  {
+    "word": "aani",
+    "start": 49.9,
+    "end": 50.1
+  },
+  {
+    "word": "hain.",
+    "start": 50.1,
+    "end": 50.48
+  },
+  {
+    "word": "Toh",
+    "start": 50.48,
+    "end": 51.14
+  },
+  {
+    "word": "agar",
+    "start": 51.14,
+    "end": 51.3
+  },
+  {
+    "word": "aap",
+    "start": 51.3,
+    "end": 51.4
+  },
+  {
+    "word": "Ontario",
+    "start": 51.4,
+    "end": 51.78
+  },
+  {
+    "word": "mein",
+    "start": 51.78,
+    "end": 52.02
+  },
+  {
+    "word": "ho,",
+    "start": 52.02,
+    "end": 52.24
+  },
+  {
+    "word": "status",
+    "start": 52.54,
+    "end": 52.82
+  },
+  {
+    "word": "expire",
+    "start": 52.82,
+    "end": 53.22
+  },
+  {
+    "word": "hone",
+    "start": 53.22,
+    "end": 53.46
+  },
+  {
+    "word": "se",
+    "start": 53.46,
+    "end": 53.52
+  },
+  {
+    "word": "pehle",
+    "start": 53.52,
+    "end": 54.06
+  },
+  {
+    "word": "options",
+    "start": 54.06,
+    "end": 54.44
+  },
+  {
+    "word": "check",
+    "start": 54.44,
+    "end": 54.68
+  },
+  {
+    "word": "karo,",
+    "start": 54.68,
+    "end": 55.04
+  },
+  {
+    "word": "aur",
+    "start": 55.04,
+    "end": 55.48
+  },
+  {
+    "word": "sirf",
+    "start": 55.48,
+    "end": 55.76
+  },
+  {
+    "word": "licensed",
+    "start": 55.76,
+    "end": 56.18
+  },
+  {
+    "word": "consultant",
+    "start": 56.18,
+    "end": 56.63
+  },
+  {
+    "word": "se",
+    "start": 56.63,
+    "end": 56.72
+  },
+  {
+    "word": "salah",
+    "start": 56.72,
+    "end": 57.02
+  },
+  {
+    "word": "lo.",
+    "start": 57.02,
+    "end": 57.36
+  },
+  {
+    "word": "Aise",
+    "start": 57.8,
+    "end": 58.02
+  },
+  {
+    "word": "updates",
+    "start": 58.02,
+    "end": 58.26
+  },
+  {
+    "word": "ke",
+    "start": 58.26,
+    "end": 58.44
+  },
+  {
+    "word": "liye",
+    "start": 58.44,
+    "end": 58.46
+  },
+  {
+    "word": "follow",
+    "start": 58.46,
+    "end": 59.08
+  },
+  {
+    "word": "karo.",
+    "start": 59.08,
+    "end": 59.32
+  }
+]
