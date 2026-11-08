@@ -1,1 +1,812 @@
-[]
+[
+  {
+    "word": "Saskatchewan",
+    "start": 0.0,
+    "end": 0.96
+  },
+  {
+    "word": "mein",
+    "start": 0.96,
+    "end": 1.18
+  },
+  {
+    "word": "PR",
+    "start": 1.18,
+    "end": 1.54
+  },
+  {
+    "word": "ka",
+    "start": 1.54,
+    "end": 1.74
+  },
+  {
+    "word": "rasta",
+    "start": 1.74,
+    "end": 2.12
+  },
+  {
+    "word": "abhi",
+    "start": 2.12,
+    "end": 2.42
+  },
+  {
+    "word": "bhi",
+    "start": 2.42,
+    "end": 2.48
+  },
+  {
+    "word": "khula",
+    "start": 2.48,
+    "end": 2.78
+  },
+  {
+    "word": "hai.",
+    "start": 2.78,
+    "end": 3.16
+  },
+  {
+    "word": "Iska",
+    "start": 3.16,
+    "end": 3.58
+  },
+  {
+    "word": "program",
+    "start": 3.58,
+    "end": 3.88
+  },
+  {
+    "word": "hai",
+    "start": 3.88,
+    "end": 4.06
+  },
+  {
+    "word": "SINP,",
+    "start": 4.06,
+    "end": 5.22
+  },
+  {
+    "word": "aur",
+    "start": 5.22,
+    "end": 5.58
+  },
+  {
+    "word": "2026",
+    "start": 5.58,
+    "end": 6.06
+  },
+  {
+    "word": "mein",
+    "start": 6.06,
+    "end": 6.22
+  },
+  {
+    "word": "iska",
+    "start": 6.22,
+    "end": 6.44
+  },
+  {
+    "word": "quota",
+    "start": 6.44,
+    "end": 6.84
+  },
+  {
+    "word": "5,261",
+    "start": 6.84,
+    "end": 8.64
+  },
+  {
+    "word": "nominations",
+    "start": 8.64,
+    "end": 9.22
+  },
+  {
+    "word": "ka",
+    "start": 9.22,
+    "end": 9.32
+  },
+  {
+    "word": "hai.",
+    "start": 9.32,
+    "end": 10.06
+  },
+  {
+    "word": "Aadhe",
+    "start": 10.06,
+    "end": 10.46
+  },
+  {
+    "word": "se",
+    "start": 10.46,
+    "end": 10.66
+  },
+  {
+    "word": "zyada",
+    "start": 10.66,
+    "end": 10.84
+  },
+  {
+    "word": "seats",
+    "start": 10.84,
+    "end": 11.08
+  },
+  {
+    "word": "priority",
+    "start": 11.08,
+    "end": 11.68
+  },
+  {
+    "word": "sectors",
+    "start": 11.68,
+    "end": 12.02
+  },
+  {
+    "word": "ke",
+    "start": 12.02,
+    "end": 12.1
+  },
+  {
+    "word": "liye",
+    "start": 12.1,
+    "end": 12.235
+  },
+  {
+    "word": "hain:",
+    "start": 12.235,
+    "end": 12.37
+  },
+  {
+    "word": "healthcare,",
+    "start": 12.44,
+    "end": 13.46
+  },
+  {
+    "word": "agriculture,",
+    "start": 13.6,
+    "end": 14.32
+  },
+  {
+    "word": "trades,",
+    "start": 14.44,
+    "end": 15.06
+  },
+  {
+    "word": "mining",
+    "start": 15.22,
+    "end": 15.66
+  },
+  {
+    "word": "aur",
+    "start": 15.66,
+    "end": 15.84
+  },
+  {
+    "word": "tech.",
+    "start": 15.84,
+    "end": 16.7
+  },
+  {
+    "word": "Food",
+    "start": 16.7,
+    "end": 17.04
+  },
+  {
+    "word": "service,",
+    "start": 17.04,
+    "end": 17.46
+  },
+  {
+    "word": "retail",
+    "start": 17.58,
+    "end": 17.92
+  },
+  {
+    "word": "aur",
+    "start": 17.92,
+    "end": 18.08
+  },
+  {
+    "word": "trucking",
+    "start": 18.08,
+    "end": 18.42
+  },
+  {
+    "word": "par",
+    "start": 18.42,
+    "end": 18.58
+  },
+  {
+    "word": "25",
+    "start": 18.58,
+    "end": 19.2
+  },
+  {
+    "word": "percent",
+    "start": 19.2,
+    "end": 19.22
+  },
+  {
+    "word": "ka",
+    "start": 19.22,
+    "end": 19.7
+  },
+  {
+    "word": "cap",
+    "start": 19.7,
+    "end": 19.88
+  },
+  {
+    "word": "hai,",
+    "start": 19.88,
+    "end": 20.12
+  },
+  {
+    "word": "aur",
+    "start": 20.12,
+    "end": 20.36
+  },
+  {
+    "word": "unki",
+    "start": 20.36,
+    "end": 20.56
+  },
+  {
+    "word": "seats",
+    "start": 20.56,
+    "end": 20.74
+  },
+  {
+    "word": "jaldi",
+    "start": 20.74,
+    "end": 21.08
+  },
+  {
+    "word": "bhar",
+    "start": 21.08,
+    "end": 21.2
+  },
+  {
+    "word": "jaati",
+    "start": 21.2,
+    "end": 21.42
+  },
+  {
+    "word": "hain.",
+    "start": 21.42,
+    "end": 21.7
+  },
+  {
+    "word": "Sabse",
+    "start": 22.54,
+    "end": 22.86
+  },
+  {
+    "word": "seedha",
+    "start": 22.86,
+    "end": 23.16
+  },
+  {
+    "word": "rasta",
+    "start": 23.16,
+    "end": 23.5
+  },
+  {
+    "word": "hai",
+    "start": 23.5,
+    "end": 23.6
+  },
+  {
+    "word": "Saskatchewan",
+    "start": 23.6,
+    "end": 24.28
+  },
+  {
+    "word": "employer",
+    "start": 24.28,
+    "end": 24.66
+  },
+  {
+    "word": "se",
+    "start": 24.66,
+    "end": 24.84
+  },
+  {
+    "word": "full-time",
+    "start": 24.84,
+    "end": 25.32
+  },
+  {
+    "word": "job",
+    "start": 25.32,
+    "end": 25.54
+  },
+  {
+    "word": "offer.",
+    "start": 25.54,
+    "end": 25.98
+  },
+  {
+    "word": "Employer",
+    "start": 25.98,
+    "end": 26.56
+  },
+  {
+    "word": "pehle",
+    "start": 26.56,
+    "end": 26.8
+  },
+  {
+    "word": "EPA",
+    "start": 26.8,
+    "end": 27.16
+  },
+  {
+    "word": "approve",
+    "start": 27.16,
+    "end": 27.38
+  },
+  {
+    "word": "karwata",
+    "start": 27.38,
+    "end": 27.74
+  },
+  {
+    "word": "hai,",
+    "start": 27.74,
+    "end": 27.88
+  },
+  {
+    "word": "phir",
+    "start": 27.88,
+    "end": 28.1
+  },
+  {
+    "word": "aap",
+    "start": 28.1,
+    "end": 28.28
+  },
+  {
+    "word": "apply",
+    "start": 28.28,
+    "end": 28.46
+  },
+  {
+    "word": "karte",
+    "start": 28.46,
+    "end": 28.76
+  },
+  {
+    "word": "ho.",
+    "start": 28.76,
+    "end": 29.18
+  },
+  {
+    "word": "Chahiye",
+    "start": 29.18,
+    "end": 29.68
+  },
+  {
+    "word": "110",
+    "start": 29.68,
+    "end": 30.2
+  },
+  {
+    "word": "mein",
+    "start": 30.2,
+    "end": 30.48
+  },
+  {
+    "word": "se",
+    "start": 30.48,
+    "end": 30.74
+  },
+  {
+    "word": "kam",
+    "start": 30.74,
+    "end": 30.98
+  },
+  {
+    "word": "se",
+    "start": 30.98,
+    "end": 31.08
+  },
+  {
+    "word": "kam",
+    "start": 31.08,
+    "end": 31.32
+  },
+  {
+    "word": "60",
+    "start": 31.32,
+    "end": 31.64
+  },
+  {
+    "word": "points,",
+    "start": 31.64,
+    "end": 32.32
+  },
+  {
+    "word": "ek",
+    "start": 32.32,
+    "end": 32.72
+  },
+  {
+    "word": "saal",
+    "start": 32.72,
+    "end": 32.9
+  },
+  {
+    "word": "ka",
+    "start": 32.9,
+    "end": 33.0
+  },
+  {
+    "word": "experience,",
+    "start": 33.0,
+    "end": 33.46
+  },
+  {
+    "word": "aur",
+    "start": 33.46,
+    "end": 33.76
+  },
+  {
+    "word": "sirf",
+    "start": 33.76,
+    "end": 34.0
+  },
+  {
+    "word": "CLB",
+    "start": 34.0,
+    "end": 34.57
+  },
+  {
+    "word": "4",
+    "start": 34.57,
+    "end": 34.76
+  },
+  {
+    "word": "English.",
+    "start": 34.76,
+    "end": 35.62
+  },
+  {
+    "word": "PGWP",
+    "start": 36.18,
+    "end": 36.7
+  },
+  {
+    "word": "waalon",
+    "start": 36.7,
+    "end": 36.96
+  },
+  {
+    "word": "ko",
+    "start": 36.96,
+    "end": 37.06
+  },
+  {
+    "word": "usi",
+    "start": 37.06,
+    "end": 37.3
+  },
+  {
+    "word": "employer",
+    "start": 37.3,
+    "end": 37.58
+  },
+  {
+    "word": "ke",
+    "start": 37.58,
+    "end": 37.78
+  },
+  {
+    "word": "saath",
+    "start": 37.78,
+    "end": 37.88
+  },
+  {
+    "word": "6",
+    "start": 37.88,
+    "end": 38.12
+  },
+  {
+    "word": "mahine",
+    "start": 38.12,
+    "end": 38.36
+  },
+  {
+    "word": "kaam",
+    "start": 38.36,
+    "end": 38.54
+  },
+  {
+    "word": "chahiye.",
+    "start": 38.54,
+    "end": 39.44
+  },
+  {
+    "word": "Saskatchewan",
+    "start": 39.44,
+    "end": 40.14
+  },
+  {
+    "word": "ke",
+    "start": 40.14,
+    "end": 40.28
+  },
+  {
+    "word": "college",
+    "start": 40.28,
+    "end": 40.48
+  },
+  {
+    "word": "se",
+    "start": 40.48,
+    "end": 40.6
+  },
+  {
+    "word": "padhe",
+    "start": 40.6,
+    "end": 40.82
+  },
+  {
+    "word": "ho,",
+    "start": 40.82,
+    "end": 40.94
+  },
+  {
+    "word": "toh",
+    "start": 40.94,
+    "end": 41.08
+  },
+  {
+    "word": "Student",
+    "start": 41.08,
+    "end": 41.5
+  },
+  {
+    "word": "stream",
+    "start": 41.5,
+    "end": 41.72
+  },
+  {
+    "word": "bhi",
+    "start": 41.72,
+    "end": 41.84
+  },
+  {
+    "word": "hai.",
+    "start": 41.84,
+    "end": 42.24
+  },
+  {
+    "word": "Lekin",
+    "start": 42.24,
+    "end": 42.68
+  },
+  {
+    "word": "bina",
+    "start": 42.68,
+    "end": 42.98
+  },
+  {
+    "word": "job",
+    "start": 42.98,
+    "end": 43.16
+  },
+  {
+    "word": "offer",
+    "start": 43.16,
+    "end": 43.36
+  },
+  {
+    "word": "wale",
+    "start": 43.36,
+    "end": 43.56
+  },
+  {
+    "word": "draws",
+    "start": 43.56,
+    "end": 43.94
+  },
+  {
+    "word": "ka",
+    "start": 43.94,
+    "end": 44.14
+  },
+  {
+    "word": "abhi",
+    "start": 44.14,
+    "end": 44.44
+  },
+  {
+    "word": "koi",
+    "start": 44.44,
+    "end": 44.7
+  },
+  {
+    "word": "schedule",
+    "start": 44.7,
+    "end": 45.08
+  },
+  {
+    "word": "nahi",
+    "start": 45.08,
+    "end": 45.34
+  },
+  {
+    "word": "hai.",
+    "start": 45.34,
+    "end": 46.16
+  },
+  {
+    "word": "Aur",
+    "start": 46.16,
+    "end": 46.48
+  },
+  {
+    "word": "sabse",
+    "start": 46.48,
+    "end": 46.74
+  },
+  {
+    "word": "badi",
+    "start": 46.74,
+    "end": 46.88
+  },
+  {
+    "word": "baat,",
+    "start": 46.88,
+    "end": 47.26
+  },
+  {
+    "word": "nomination",
+    "start": 47.26,
+    "end": 48.0
+  },
+  {
+    "word": "mil",
+    "start": 48.0,
+    "end": 48.16
+  },
+  {
+    "word": "gaya",
+    "start": 48.16,
+    "end": 48.38
+  },
+  {
+    "word": "toh",
+    "start": 48.38,
+    "end": 48.48
+  },
+  {
+    "word": "Express",
+    "start": 48.48,
+    "end": 48.88
+  },
+  {
+    "word": "Entry",
+    "start": 48.88,
+    "end": 49.22
+  },
+  {
+    "word": "mein",
+    "start": 49.22,
+    "end": 49.46
+  },
+  {
+    "word": "seedhe",
+    "start": 49.46,
+    "end": 49.86
+  },
+  {
+    "word": "600",
+    "start": 49.86,
+    "end": 50.22
+  },
+  {
+    "word": "points.",
+    "start": 50.22,
+    "end": 50.92
+  },
+  {
+    "word": "Application",
+    "start": 50.92,
+    "end": 51.78
+  },
+  {
+    "word": "fee",
+    "start": 51.78,
+    "end": 52.06
+  },
+  {
+    "word": "500",
+    "start": 52.06,
+    "end": 52.42
+  },
+  {
+    "word": "dollar",
+    "start": 52.42,
+    "end": 52.44
+  },
+  {
+    "word": "hai.",
+    "start": 52.44,
+    "end": 53.0
+  },
+  {
+    "word": "Sirf",
+    "start": 53.0,
+    "end": 53.42
+  },
+  {
+    "word": "official",
+    "start": 53.42,
+    "end": 53.86
+  },
+  {
+    "word": "site",
+    "start": 53.86,
+    "end": 54.16
+  },
+  {
+    "word": "ya",
+    "start": 54.16,
+    "end": 54.26
+  },
+  {
+    "word": "licensed",
+    "start": 54.26,
+    "end": 54.76
+  },
+  {
+    "word": "consultant",
+    "start": 54.76,
+    "end": 55.2
+  },
+  {
+    "word": "pe",
+    "start": 55.2,
+    "end": 55.32
+  },
+  {
+    "word": "bharosa",
+    "start": 55.32,
+    "end": 55.64
+  },
+  {
+    "word": "karo.",
+    "start": 55.64,
+    "end": 56.44
+  },
+  {
+    "word": "Aise",
+    "start": 56.44,
+    "end": 56.62
+  },
+  {
+    "word": "updates",
+    "start": 56.62,
+    "end": 56.88
+  },
+  {
+    "word": "ke",
+    "start": 56.88,
+    "end": 57.0
+  },
+  {
+    "word": "liye",
+    "start": 57.0,
+    "end": 57.1
+  },
+  {
+    "word": "follow",
+    "start": 57.1,
+    "end": 57.32
+  },
+  {
+    "word": "karo.",
+    "start": 57.32,
+    "end": 57.56
+  }
+]
