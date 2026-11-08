@@ -7,5 +7,6 @@ export { Karaoke } from "./Karaoke";
 export { SafeZones } from "./SafeZones";
 export { SceneBlock, LayoutProbe } from "./probe";
 export { usePop } from "./pop";
+export { Music } from "./Music";
 export { Sfx, SfxTrack, type SfxCue, type SfxName } from "./Sfx";
 export { ReelFrame, type ReelProps, type AvatarStyle } from "./ReelFrame";

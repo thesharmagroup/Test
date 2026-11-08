@@ -2,7 +2,7 @@
 // sliding in over a blurred stack, progress dots, and big kinetic words next
 // to the character. Reusable for other reels: import from here.
 import React from "react";
-import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Brand } from "../../brand";
 import { FONTS } from "../../fonts";
 import { usePop } from "../../components/pop";
@@ -106,8 +106,15 @@ export const InfoCard: React.FC<{
   footer?: string;
   children?: React.ReactNode;
   width?: number;
-}> = ({ n, icon, title, at, footer, children, width = 500 }) => {
+  /** Optional photo across the top of the card (path in public/), slowly zooming. */
+  image?: string;
+  /** Short credit shown on the photo, e.g. "Photo: Name · CC BY-SA 4.0". */
+  credit?: string;
+  imageHeight?: number;
+}> = ({ n, icon, title, at, footer, children, width = 500, image, credit, imageHeight = 240 }) => {
   const { style } = useSlide(at);
+  const frame = useCurrentFrame();
+  const zoom = interpolate(frame - at, [0, 180], [1.14, 1.0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <div
       data-el="card"
@@ -124,10 +131,20 @@ export const InfoCard: React.FC<{
         color: INK,
       }}
     >
-      <div style={{ position: "absolute", right: 18, top: 40, bottom: 40, width: 9, background: RED, borderRadius: 6 }} />
+      <div style={{ position: "absolute", right: 18, top: image ? imageHeight + 24 : 40, bottom: 40, width: 9, background: RED, borderRadius: 6 }} />
       <div style={{ position: "absolute", left: -18, top: -18, width: 66, height: 66, borderRadius: 33, background: RED, color: "#fff", fontWeight: 800, fontSize: 30, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px rgba(0,0,0,0.15)" }}>{n}</div>
+      {image ? (
+        <div style={{ position: "relative", margin: "-36px -46px 22px -40px", height: imageHeight, borderRadius: "36px 36px 0 0", overflow: "hidden" }}>
+          <Img src={staticFile(image)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})` }} />
+          <div style={{ position: "absolute", left: 22, bottom: 18, width: 84, height: 84, borderRadius: 26, background: INK, color: "#fff", fontWeight: 800, fontSize: icon.length > 2 ? 24 : 46, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(0,0,0,0.3)" }}>{icon}</div>
+          {credit ? (
+            <div style={{ position: "absolute", right: 14, bottom: 12, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 17, fontWeight: 600, padding: "4px 10px", borderRadius: 8 }}>{credit}</div>
+          ) : null}
+        </div>
+      ) : null}
       <div
         style={{
+          display: image ? "none" : "flex",
           width: 96,
           height: 96,
           borderRadius: 30,
@@ -135,7 +152,6 @@ export const InfoCard: React.FC<{
           color: "#fff",
           fontWeight: 800,
           fontSize: icon.length > 2 ? 26 : 52,
-          display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}

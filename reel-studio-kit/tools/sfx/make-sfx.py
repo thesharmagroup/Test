@@ -116,9 +116,31 @@ def ding():
     return norm(fade(x, 1, 60), 0.55)
 
 
+def success():
+    """Rising four-note chime for good news."""
+    out = np.zeros(int(SR * 1.1))
+    for k, f in enumerate([523.25, 659.25, 783.99, 1046.5]):
+        tt = t(0.7)
+        note = (np.sin(2 * np.pi * f * tt) + 0.4 * np.sin(2 * np.pi * 2 * f * tt)) * np.exp(-tt * 6)
+        i = int(SR * 0.09 * k)
+        out[i : i + len(note)] += note * (0.8 + 0.07 * k)
+    return norm(fade(out, 1, 80), 0.55)
+
+
+def alert():
+    """Two-tone falling alert for bad news."""
+    out = np.zeros(int(SR * 0.7))
+    for k, f in enumerate([660.0, 440.0]):
+        tt = t(0.32)
+        note = (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * 3 * f * tt)) * np.exp(-tt * 7) * (1 - np.exp(-tt * 200))
+        i = int(SR * 0.17 * k)
+        out[i : i + len(note)] += note
+    return norm(fade(out, 1, 60), 0.55)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for name, fn in [("click", click), ("whoosh", whoosh), ("pop", pop), ("stamp", stamp), ("typing", typing_loop), ("counter", counter_loop), ("ding", ding)]:
+    for name, fn in [("click", click), ("whoosh", whoosh), ("pop", pop), ("stamp", stamp), ("typing", typing_loop), ("counter", counter_loop), ("ding", ding), ("success", success), ("alert", alert)]:
         path = os.path.join(OUT, f"{name}.wav")
         sf.write(path, fn(), SR, subtype="PCM_16")
         print("wrote", os.path.relpath(path))

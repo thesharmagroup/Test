@@ -5,7 +5,7 @@
 import React from "react";
 import { Audio, Sequence, staticFile } from "remotion";
 
-export type SfxName = "click" | "whoosh" | "pop" | "stamp" | "typing" | "counter" | "ding";
+export type SfxName = "click" | "whoosh" | "pop" | "stamp" | "typing" | "counter" | "ding" | "success" | "alert";
 
 const DEFAULT_VOLUME: Record<SfxName, number> = {
   click: 0.45,
@@ -15,6 +15,8 @@ const DEFAULT_VOLUME: Record<SfxName, number> = {
   typing: 0.32,
   counter: 0.22,
   ding: 0.35,
+  success: 0.4,
+  alert: 0.35,
 };
 
 export type SfxCue = { name: SfxName; at: number; frames?: number; volume?: number };

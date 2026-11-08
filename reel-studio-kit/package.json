@@ -17,7 +17,8 @@
     "demo:assets": "node tools/demo/make-demo.mjs",
     "demo": "node tools/render.mjs Demo",
     "sprites:placeholders": "node tools/make-placeholder-sprites.mjs",
-    "sfx": "tools/.venv/bin/python tools/sfx/make-sfx.py"
+    "sfx": "tools/.venv/bin/python tools/sfx/make-sfx.py",
+    "music": "tools/.venv/bin/python tools/sfx/make-music.py"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.538",
