@@ -1,1 +1,782 @@
-[]
+[
+  {
+    "word": "12th",
+    "start": 0.0,
+    "end": 0.44
+  },
+  {
+    "word": "ke",
+    "start": 0.44,
+    "end": 0.6
+  },
+  {
+    "word": "baad",
+    "start": 0.6,
+    "end": 0.86
+  },
+  {
+    "word": "Ontario",
+    "start": 0.86,
+    "end": 1.44
+  },
+  {
+    "word": "mein",
+    "start": 1.44,
+    "end": 1.6
+  },
+  {
+    "word": "ECE",
+    "start": 1.6,
+    "end": 2.14
+  },
+  {
+    "word": "lein",
+    "start": 2.14,
+    "end": 2.48
+  },
+  {
+    "word": "ya",
+    "start": 2.48,
+    "end": 2.64
+  },
+  {
+    "word": "PSW?",
+    "start": 2.64,
+    "end": 3.7
+  },
+  {
+    "word": "Pehle",
+    "start": 3.9,
+    "end": 4.08
+  },
+  {
+    "word": "ek",
+    "start": 4.08,
+    "end": 4.22
+  },
+  {
+    "word": "baat:",
+    "start": 4.22,
+    "end": 4.48
+  },
+  {
+    "word": "aapka",
+    "start": 4.66,
+    "end": 5.32
+  },
+  {
+    "word": "1",
+    "start": 5.32,
+    "end": 5.352
+  },
+  {
+    "word": "saal",
+    "start": 5.352,
+    "end": 5.48
+  },
+  {
+    "word": "ka",
+    "start": 5.48,
+    "end": 5.66
+  },
+  {
+    "word": "front",
+    "start": 5.66,
+    "end": 6.04
+  },
+  {
+    "word": "desk",
+    "start": 6.04,
+    "end": 6.14
+  },
+  {
+    "word": "experience",
+    "start": 6.14,
+    "end": 6.8
+  },
+  {
+    "word": "TEER",
+    "start": 6.8,
+    "end": 7.152
+  },
+  {
+    "word": "4",
+    "start": 7.152,
+    "end": 7.24
+  },
+  {
+    "word": "hai,",
+    "start": 7.58,
+    "end": 7.76
+  },
+  {
+    "word": "Express",
+    "start": 7.9,
+    "end": 8.24
+  },
+  {
+    "word": "Entry",
+    "start": 8.24,
+    "end": 8.3
+  },
+  {
+    "word": "mein",
+    "start": 8.3,
+    "end": 8.5
+  },
+  {
+    "word": "count",
+    "start": 8.5,
+    "end": 8.7
+  },
+  {
+    "word": "nahi",
+    "start": 8.7,
+    "end": 8.84
+  },
+  {
+    "word": "hoga.",
+    "start": 8.84,
+    "end": 9.58
+  },
+  {
+    "word": "ECE",
+    "start": 9.84,
+    "end": 10.36
+  },
+  {
+    "word": "yaani",
+    "start": 10.36,
+    "end": 10.74
+  },
+  {
+    "word": "Early",
+    "start": 10.74,
+    "end": 11.02
+  },
+  {
+    "word": "Childhood",
+    "start": 11.02,
+    "end": 11.44
+  },
+  {
+    "word": "Education,",
+    "start": 11.44,
+    "end": 12.54
+  },
+  {
+    "word": "2",
+    "start": 12.54,
+    "end": 12.576
+  },
+  {
+    "word": "saal",
+    "start": 12.576,
+    "end": 12.72
+  },
+  {
+    "word": "ka",
+    "start": 12.72,
+    "end": 12.9
+  },
+  {
+    "word": "Ontario",
+    "start": 12.9,
+    "end": 13.44
+  },
+  {
+    "word": "College",
+    "start": 13.44,
+    "end": 13.7
+  },
+  {
+    "word": "Diploma.",
+    "start": 13.7,
+    "end": 14.78
+  },
+  {
+    "word": "Isse",
+    "start": 14.78,
+    "end": 14.94
+  },
+  {
+    "word": "3",
+    "start": 15.34,
+    "end": 15.376
+  },
+  {
+    "word": "saal",
+    "start": 15.376,
+    "end": 15.52
+  },
+  {
+    "word": "ka",
+    "start": 15.52,
+    "end": 15.64
+  },
+  {
+    "word": "PGWP",
+    "start": 15.64,
+    "end": 16.24
+  },
+  {
+    "word": "milta",
+    "start": 16.24,
+    "end": 16.396
+  },
+  {
+    "word": "hai.",
+    "start": 16.396,
+    "end": 16.52
+  },
+  {
+    "word": "Job",
+    "start": 16.92,
+    "end": 17.14
+  },
+  {
+    "word": "early",
+    "start": 17.14,
+    "end": 17.46
+  },
+  {
+    "word": "childhood",
+    "start": 17.46,
+    "end": 17.96
+  },
+  {
+    "word": "educator",
+    "start": 17.96,
+    "end": 18.42
+  },
+  {
+    "word": "ki,",
+    "start": 18.42,
+    "end": 18.72
+  },
+  {
+    "word": "jo",
+    "start": 18.72,
+    "end": 18.84
+  },
+  {
+    "word": "Express",
+    "start": 18.84,
+    "end": 19.16
+  },
+  {
+    "word": "Entry",
+    "start": 19.16,
+    "end": 19.4
+  },
+  {
+    "word": "ki",
+    "start": 19.4,
+    "end": 19.56
+  },
+  {
+    "word": "education",
+    "start": 19.56,
+    "end": 20.06
+  },
+  {
+    "word": "category",
+    "start": 20.06,
+    "end": 20.46
+  },
+  {
+    "word": "mein",
+    "start": 20.46,
+    "end": 20.62
+  },
+  {
+    "word": "hai.",
+    "start": 20.62,
+    "end": 21.12
+  },
+  {
+    "word": "PSW",
+    "start": 21.12,
+    "end": 22.12
+  },
+  {
+    "word": "yaani",
+    "start": 22.12,
+    "end": 22.38
+  },
+  {
+    "word": "Personal",
+    "start": 22.38,
+    "end": 22.78
+  },
+  {
+    "word": "Support",
+    "start": 22.78,
+    "end": 23.1
+  },
+  {
+    "word": "Worker,",
+    "start": 23.1,
+    "end": 23.64
+  },
+  {
+    "word": "sirf",
+    "start": 23.64,
+    "end": 24.12
+  },
+  {
+    "word": "1",
+    "start": 24.12,
+    "end": 24.14
+  },
+  {
+    "word": "saal",
+    "start": 24.14,
+    "end": 24.2
+  },
+  {
+    "word": "ka",
+    "start": 24.2,
+    "end": 24.34
+  },
+  {
+    "word": "certificate.",
+    "start": 24.34,
+    "end": 25.08
+  },
+  {
+    "word": "Centennial",
+    "start": 25.08,
+    "end": 25.64
+  },
+  {
+    "word": "mein",
+    "start": 25.64,
+    "end": 25.84
+  },
+  {
+    "word": "international",
+    "start": 25.84,
+    "end": 26.32
+  },
+  {
+    "word": "fees",
+    "start": 26.32,
+    "end": 26.6
+  },
+  {
+    "word": "lagbhag",
+    "start": 26.6,
+    "end": 26.92
+  },
+  {
+    "word": "18,000",
+    "start": 26.92,
+    "end": 27.42
+  },
+  {
+    "word": "dollar.",
+    "start": 27.42,
+    "end": 27.44
+  },
+  {
+    "word": "Lekin",
+    "start": 27.44,
+    "end": 28.4
+  },
+  {
+    "word": "PGWP",
+    "start": 28.4,
+    "end": 29.18
+  },
+  {
+    "word": "bhi",
+    "start": 29.18,
+    "end": 29.28
+  },
+  {
+    "word": "program",
+    "start": 29.28,
+    "end": 29.64
+  },
+  {
+    "word": "jitna,",
+    "start": 29.64,
+    "end": 30.02
+  },
+  {
+    "word": "yaani",
+    "start": 30.02,
+    "end": 30.3
+  },
+  {
+    "word": "lagbhag",
+    "start": 30.3,
+    "end": 30.84
+  },
+  {
+    "word": "1",
+    "start": 30.84,
+    "end": 30.89
+  },
+  {
+    "word": "saal.",
+    "start": 30.89,
+    "end": 31.14
+  },
+  {
+    "word": "Job",
+    "start": 31.52,
+    "end": 31.94
+  },
+  {
+    "word": "hospital",
+    "start": 31.94,
+    "end": 32.44
+  },
+  {
+    "word": "ya",
+    "start": 32.44,
+    "end": 32.64
+  },
+  {
+    "word": "long-term",
+    "start": 32.64,
+    "end": 33.16
+  },
+  {
+    "word": "care",
+    "start": 33.16,
+    "end": 33.38
+  },
+  {
+    "word": "mein",
+    "start": 33.38,
+    "end": 33.52
+  },
+  {
+    "word": "lo,",
+    "start": 33.52,
+    "end": 33.62
+  },
+  {
+    "word": "wahan",
+    "start": 33.62,
+    "end": 33.92
+  },
+  {
+    "word": "PSW",
+    "start": 33.92,
+    "end": 34.54
+  },
+  {
+    "word": "NOC",
+    "start": 34.54,
+    "end": 35.0
+  },
+  {
+    "word": "33102",
+    "start": 35.0,
+    "end": 36.02
+  },
+  {
+    "word": "hai,",
+    "start": 36.02,
+    "end": 36.28
+  },
+  {
+    "word": "healthcare",
+    "start": 36.44,
+    "end": 36.7
+  },
+  {
+    "word": "category.",
+    "start": 36.7,
+    "end": 37.0
+  },
+  {
+    "word": "Express",
+    "start": 37.54,
+    "end": 38.0
+  },
+  {
+    "word": "Entry",
+    "start": 38.0,
+    "end": 38.3
+  },
+  {
+    "word": "ke",
+    "start": 38.3,
+    "end": 38.46
+  },
+  {
+    "word": "liye",
+    "start": 38.46,
+    "end": 38.48
+  },
+  {
+    "word": "12",
+    "start": 38.48,
+    "end": 38.96
+  },
+  {
+    "word": "mahine",
+    "start": 38.96,
+    "end": 39.3
+  },
+  {
+    "word": "full-time",
+    "start": 39.3,
+    "end": 39.8
+  },
+  {
+    "word": "kaam",
+    "start": 39.8,
+    "end": 39.96
+  },
+  {
+    "word": "chahiye.",
+    "start": 39.96,
+    "end": 40.76
+  },
+  {
+    "word": "Ontario",
+    "start": 40.76,
+    "end": 41.32
+  },
+  {
+    "word": "ka",
+    "start": 41.32,
+    "end": 41.42
+  },
+  {
+    "word": "naya",
+    "start": 41.42,
+    "end": 41.72
+  },
+  {
+    "word": "Workforce",
+    "start": 41.72,
+    "end": 42.16
+  },
+  {
+    "word": "Priority",
+    "start": 42.16,
+    "end": 42.62
+  },
+  {
+    "word": "stream",
+    "start": 42.62,
+    "end": 42.82
+  },
+  {
+    "word": "bhi",
+    "start": 42.82,
+    "end": 42.94
+  },
+  {
+    "word": "hai:",
+    "start": 42.94,
+    "end": 43.24
+  },
+  {
+    "word": "job",
+    "start": 43.24,
+    "end": 43.68
+  },
+  {
+    "word": "offer,",
+    "start": 43.68,
+    "end": 43.96
+  },
+  {
+    "word": "usi",
+    "start": 44.06,
+    "end": 44.22
+  },
+  {
+    "word": "job",
+    "start": 44.22,
+    "end": 44.38
+  },
+  {
+    "word": "mein",
+    "start": 44.38,
+    "end": 44.5
+  },
+  {
+    "word": "6",
+    "start": 44.5,
+    "end": 44.76
+  },
+  {
+    "word": "mahine,",
+    "start": 44.76,
+    "end": 45.08
+  },
+  {
+    "word": "aur",
+    "start": 45.18,
+    "end": 45.38
+  },
+  {
+    "word": "CLB",
+    "start": 45.38,
+    "end": 45.76
+  },
+  {
+    "word": "6",
+    "start": 45.76,
+    "end": 45.94
+  },
+  {
+    "word": "English.",
+    "start": 45.94,
+    "end": 46.86
+  },
+  {
+    "word": "Dhyan",
+    "start": 46.86,
+    "end": 47.12
+  },
+  {
+    "word": "rakho,",
+    "start": 47.12,
+    "end": 47.36
+  },
+  {
+    "word": "public-private",
+    "start": 47.46,
+    "end": 48.16
+  },
+  {
+    "word": "partnership",
+    "start": 48.16,
+    "end": 48.56
+  },
+  {
+    "word": "campus",
+    "start": 48.56,
+    "end": 48.8
+  },
+  {
+    "word": "par",
+    "start": 48.8,
+    "end": 48.98
+  },
+  {
+    "word": "PGWP",
+    "start": 48.98,
+    "end": 49.62
+  },
+  {
+    "word": "nahi",
+    "start": 49.62,
+    "end": 49.8
+  },
+  {
+    "word": "milta.",
+    "start": 49.8,
+    "end": 50.6
+  },
+  {
+    "word": "Toh",
+    "start": 50.92,
+    "end": 51.1
+  },
+  {
+    "word": "lamba",
+    "start": 51.1,
+    "end": 51.6
+  },
+  {
+    "word": "aur",
+    "start": 51.6,
+    "end": 51.7
+  },
+  {
+    "word": "safe",
+    "start": 51.7,
+    "end": 51.9
+  },
+  {
+    "word": "rasta",
+    "start": 51.9,
+    "end": 52.3
+  },
+  {
+    "word": "ECE,",
+    "start": 52.3,
+    "end": 52.82
+  },
+  {
+    "word": "jaldi",
+    "start": 53.02,
+    "end": 53.38
+  },
+  {
+    "word": "aur",
+    "start": 53.38,
+    "end": 53.48
+  },
+  {
+    "word": "sasta",
+    "start": 53.48,
+    "end": 53.88
+  },
+  {
+    "word": "PSW.",
+    "start": 53.88,
+    "end": 54.66
+  },
+  {
+    "word": "Admission",
+    "start": 54.88,
+    "end": 55.18
+  },
+  {
+    "word": "se",
+    "start": 55.18,
+    "end": 55.28
+  },
+  {
+    "word": "pehle",
+    "start": 55.28,
+    "end": 55.48
+  },
+  {
+    "word": "college",
+    "start": 55.48,
+    "end": 55.74
+  },
+  {
+    "word": "ka",
+    "start": 55.74,
+    "end": 55.94
+  },
+  {
+    "word": "PGWP",
+    "start": 55.94,
+    "end": 56.6
+  },
+  {
+    "word": "status",
+    "start": 56.6,
+    "end": 56.82
+  },
+  {
+    "word": "zaroor",
+    "start": 56.82,
+    "end": 57.18
+  },
+  {
+    "word": "check",
+    "start": 57.18,
+    "end": 57.32
+  },
+  {
+    "word": "karo.",
+    "start": 57.32,
+    "end": 57.56
+  }
+]
