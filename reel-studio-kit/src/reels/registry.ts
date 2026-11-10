@@ -8,6 +8,7 @@ import * as r_recharge_mehnga from "./recharge-mehnga/Reel";
 import * as r_recharge_paper from "./recharge-paper/Reel";
 import * as r_canada_pr from "./canada-pr/Reel";
 import * as r_sask_pr from "./sask-pr/Reel";
+import * as r_study_pr from "./study-pr/Reel";
 // <new-reel-imports>
 
 export type ReelEntry = {
@@ -34,6 +35,7 @@ export const REELS: ReelEntry[] = [
   { id: "recharge-paper", Component: r_recharge_paper.Reel, durationInFrames: r_recharge_paper.durationInFrames },
   { id: "canada-pr", Component: r_canada_pr.Reel, durationInFrames: r_canada_pr.durationInFrames },
   { id: "sask-pr", Component: r_sask_pr.Reel, durationInFrames: r_sask_pr.durationInFrames },
+  { id: "study-pr", Component: r_study_pr.Reel, durationInFrames: r_study_pr.durationInFrames },
   // <new-reel-entries>
 ];
 
