@@ -1,14 +1,9 @@
 
-import { kie } from '../lib/kie.js';
+import { muapi } from '../lib/muapi.js';
 import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
-import { startGenerationJob } from '../lib/pendingJobs.js';
-import { loadPricing, costText } from '../lib/modelSort.js';
-import { createQueueHistory, pendingThumbHtml, creditBadgeHtml, costMeta } from '../lib/studioQueue.js';
-
-// Cinema Studio always shoots with this model; its price comes from the backend registry.
-const CINEMA_MODEL = { id: 'nano-banana-pro' };
+import { t } from '../lib/i18n.js';
 
 export function CinemaStudio() {
     const container = document.createElement('div');
@@ -33,9 +28,9 @@ export function CinemaStudio() {
     const heroSection = document.createElement('div');
     heroSection.className = 'flex flex-col items-center justify-center text-center px-4 animate-fade-in-up';
     heroSection.innerHTML = `
-        <div class="mb-4 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">Cinema Studio 2.0</div>
+        <div class="mb-4 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">${t('cinema.tagline')}</div>
         <h1 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 tracking-tight leading-tight mb-2">
-            What would you shoot<br>with infinite budget?
+            ${t('cinema.headline')}
         </h1>
     `;
     container.appendChild(heroSection);
@@ -112,7 +107,7 @@ export function CinemaStudio() {
 
     // Textarea
     const textarea = document.createElement('textarea');
-    textarea.placeholder = 'Describe your scene - use @ to add characters & props';
+    textarea.placeholder = t('cinema.placeholder');
     textarea.className = 'flex-1 bg-transparent border-none text-white text-lg font-medium placeholder:text-white/20 focus:outline-none resize-none h-[28px] leading-relaxed overflow-hidden';
     textarea.style.height = 'auto'; // Auto-grow check
     textarea.rows = 1;
@@ -186,14 +181,14 @@ export function CinemaStudio() {
     };
     updateResBtn('2K');
     resBtn.onclick = () => {
-        createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); refreshCost(); }, resBtn);
+        createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); }, resBtn);
     };
     settingsToolbar.appendChild(resBtn);
     
     // Camera Builder Toggle Button
     const cameraBuilderBtn = document.createElement('button');
     cameraBuilderBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-lg border border-white/5';
-    cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
+    cameraBuilderBtn.setAttribute('data-tooltip', t('cinema.builderTooltip'));
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
 
@@ -209,7 +204,7 @@ export function CinemaStudio() {
     const summaryCard = document.createElement('button');
     // Removed 'hidden' class, added 'flex' and refined width constraints for mobile
     summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-[#2a2a2a] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
-    summaryCard.setAttribute('data-tooltip', 'Open camera settings');
+    summaryCard.setAttribute('data-tooltip', t('cinema.cameraSettings'));
 
     // Dot indicator
     const dot = document.createElement('div');
@@ -240,20 +235,11 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
-    generateBtn.className = 'h-[56px] px-8 bg-[#ff2d2d] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.className = 'h-[56px] px-8 bg-[#22d3ee] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
-    generateBtn.innerHTML = `GENERATE ✨`;
-
-    // Estimated cost of the next shot, beside Generate.
-    const costEl = document.createElement('span');
-    costEl.className = 'hidden sm:inline text-[11px] font-bold text-white/50 whitespace-nowrap self-center';
-    const refreshCost = () => {
-        costEl.textContent = costText(CINEMA_MODEL, { resolution: resBtn.dataset.value });
-    };
-    loadPricing().then(refreshCost);
+    generateBtn.innerHTML = t('cinema.generateBtn');
 
     rightGroup.appendChild(summaryCard);
-    rightGroup.appendChild(costEl);
     rightGroup.appendChild(generateBtn);
     promptBar.appendChild(rightGroup);
 
@@ -272,44 +258,44 @@ export function CinemaStudio() {
     
     builderCard.innerHTML = `
         <div class="flex items-center justify-between mb-4">
-            <h4 class="text-xs font-bold text-white">Camera Builder</h4>
+            <h4 class="text-xs font-bold text-white">${t('cinema.cameraBuilder')}</h4>
             <button id="close-builder-btn" class="text-white/40 hover:text-white transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
         </div>
-        
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <div class="flex flex-col gap-1.5">
-                <label class="text-[10px] font-bold text-muted uppercase">Camera</label>
+                <label class="text-[10px] font-bold text-muted uppercase">${t('cinema.camera')}</label>
                 <select id="builder-camera" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
                     ${Object.keys(CAMERA_MAP).map(c => `<option value="${c}" ${c === currentSettings.camera ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-[10px] font-bold text-muted uppercase">Lens</label>
+                <label class="text-[10px] font-bold text-muted uppercase">${t('cinema.lens')}</label>
                 <select id="builder-lens" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
                     ${Object.keys(LENS_MAP).map(l => `<option value="${l}" ${l === currentSettings.lens ? 'selected' : ''}>${l}</option>`).join('')}
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-[10px] font-bold text-muted uppercase">Focal</label>
+                <label class="text-[10px] font-bold text-muted uppercase">${t('cinema.focal')}</label>
                 <select id="builder-focal" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
                     ${Object.keys(FOCAL_PERSPECTIVE).map(f => `<option value="${f}" ${f === currentSettings.focal ? 'selected' : ''}>${f}mm</option>`).join('')}
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <label class="text-[10px] font-bold text-muted uppercase">Aperture</label>
+                <label class="text-[10px] font-bold text-muted uppercase">${t('cinema.aperture')}</label>
                 <select id="builder-aperture" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
                     ${Object.keys(APERTURE_EFFECT).map(a => `<option value="${a}" ${a === currentSettings.aperture ? 'selected' : ''}>${a}</option>`).join('')}
                 </select>
             </div>
         </div>
-        
+
         <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-bold text-muted uppercase">Preview</label>
+            <label class="text-[10px] font-bold text-muted uppercase">${t('cinema.preview')}</label>
             <div id="builder-preview" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs min-h-[40px]"></div>
             <button id="apply-builder-btn" class="px-4 py-2 bg-primary text-black rounded-lg text-xs font-bold hover:shadow-glow transition-all">
-                Use This Setup
+                ${t('cinema.useSetup')}
             </button>
         </div>
     `;
@@ -340,7 +326,7 @@ export function CinemaStudio() {
         const preview = buildNanoBananaPrompt('', camera, lens, focal, aperture);
         const previewEl = builderCard.querySelector('#builder-preview');
         if (previewEl) {
-            previewEl.textContent = preview || 'Select camera settings to see preview...';
+            previewEl.textContent = preview || t('cinema.selectSettings');
         }
     };
     
@@ -380,7 +366,7 @@ export function CinemaStudio() {
 
     const historyLabel = document.createElement('div');
     historyLabel.className = 'text-[9px] font-bold text-white/40 uppercase tracking-widest mb-2';
-    historyLabel.textContent = 'History';
+    historyLabel.textContent = t('cinema.history');
     historySidebar.appendChild(historyLabel);
 
     const historyList = document.createElement('div');
@@ -410,15 +396,15 @@ export function CinemaStudio() {
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'bg-[#ff2d2d] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'bg-[#22d3ee] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;
     };
 
-    const regenerateBtn = createActionBtn('↻ Regenerate');
-    const downloadBtn = createActionBtn('↓ Download', true);
-    const newPromptBtn = createActionBtn('+ New Shot');
+    const regenerateBtn = createActionBtn(t('cinema.regenerate'));
+    const downloadBtn = createActionBtn(t('cinema.download'), true);
+    const newPromptBtn = createActionBtn(t('cinema.newShot'));
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
@@ -428,29 +414,16 @@ export function CinemaStudio() {
     container.appendChild(canvas);
 
     // --- History Logic ---
-    const queueHistory = createQueueHistory({
-        history: generationHistory, storageKey: 'cinema_history', limit: 50,
-        render: () => renderHistory(),
-    });
-
     const renderHistory = () => {
         historyList.innerHTML = '';
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
-            thumb.className = `relative group/thumb ${entry.pending ? '' : 'cursor-pointer'} rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-[#ff2d2d] shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
-
-            if (entry.pending) {
-                thumb.title = entry.settings?.prompt ? `Shooting: ${entry.settings.prompt.slice(0, 80)}` : 'Shooting…';
-                thumb.innerHTML = pendingThumbHtml(entry);
-                historyList.appendChild(thumb);
-                return;
-            }
+            thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-[#22d3ee] shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
 
             thumb.innerHTML = `
                 <img src="${entry.url}" class="w-full h-full object-cover opacity-80 group-hover/thumb:opacity-100 transition-opacity">
-                ${creditBadgeHtml(entry)}
                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
-                    <span class="text-[8px] font-bold text-white uppercase">Load</span>
+                    <span class="text-[8px] font-bold text-white uppercase">${t('cinema.load')}</span>
                 </div>
             `;
 
@@ -459,7 +432,11 @@ export function CinemaStudio() {
         });
     };
 
-    const addToHistory = (entry) => queueHistory.resolve(null, entry);
+    const addToHistory = (entry) => {
+        generationHistory.unshift(entry);
+        localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
+        renderHistory();
+    };
 
     const loadHistoryItem = (entry, thumbElement) => {
         // Restore Settings
@@ -482,11 +459,11 @@ export function CinemaStudio() {
         // Highlight active history item
         if (thumbElement) {
             historyList.querySelectorAll('div').forEach(t => {
-                t.classList.remove('border-[#ff2d2d]', 'shadow-glow-sm');
+                t.classList.remove('border-[#22d3ee]', 'shadow-glow-sm');
                 t.classList.add('border-white/10');
             });
             thumbElement.classList.remove('border-white/10');
-            thumbElement.classList.add('border-[#ff2d2d]', 'shadow-glow-sm');
+            thumbElement.classList.add('border-[#22d3ee]', 'shadow-glow-sm');
         }
     };
 
@@ -531,20 +508,7 @@ export function CinemaStudio() {
     newPromptBtn.onclick = resetToPrompt;
 
     regenerateBtn.onclick = () => {
-        // The prompt is cleared after every shot, so restore the viewed shot's settings first.
-        const entry = generationHistory.find(e => e.url === resultImg.src);
         resetToPrompt();
-        if (entry?.settings) {
-            Object.assign(currentSettings, {
-                camera: entry.settings.camera, lens: entry.settings.lens, focal: entry.settings.focal,
-                aperture: entry.settings.aperture, aspect_ratio: entry.settings.aspect_ratio,
-            });
-            textarea.value = entry.settings.prompt || '';
-            updateSummaryCard();
-            updateArBtn();
-            updateResBtn(entry.settings.resolution || '2K');
-            refreshCost();
-        }
         setTimeout(() => {
             generateBtn.click();
         }, 300);
@@ -570,22 +534,20 @@ export function CinemaStudio() {
     // ==========================================
     // 5. GENERATION LOGIC UPDATE
     // ==========================================
-    generateBtn.onclick = () => {
+    generateBtn.onclick = async () => {
         const basePrompt = textarea.value.trim();
         if (!basePrompt) return;
 
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) {
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) {
             AuthModal(() => generateBtn.click());
             return;
         }
 
-        // Snapshot this shot, then clear the prompt so the next one can start immediately.
-        const resolution = resBtn.dataset.value;
-        const settings = { prompt: basePrompt, ...currentSettings, resolution };
-        const cost = costMeta(CINEMA_MODEL, { resolution });
-        const historyMeta = { settings, model: CINEMA_MODEL.id, ...cost };
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = t('cinema.shooting');
+
+        // Compile Prompt
         const finalPrompt = buildNanoBananaPrompt(
             basePrompt,
             currentSettings.camera,
@@ -594,50 +556,39 @@ export function CinemaStudio() {
             currentSettings.aperture
         );
 
-        const tempId = queueHistory.addPending(historyMeta);
-        textarea.value = '';
-
-        const flash = (text, isError = true) => {
-            const el = document.createElement('div');
-            el.className = `fixed top-20 left-1/2 pointer-events-none -translate-x-1/2 z-[200] bg-[#111] border ${isError ? 'border-red-500/40' : 'border-[#ff2d2d]/40'} text-white text-sm px-5 py-3 rounded-2xl shadow-xl`;
-            el.textContent = text;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 5000);
-        };
-
-        // Not awaited: the studio stays usable while the shot is queued and polled.
-        startGenerationJob(
-            { studioType: 'cinema', historyMeta, maxAttempts: 150, interval: 2000 },
-            (queueRequest) => kie.generateImage({
-                model: CINEMA_MODEL.id,
+        try {
+            const res = await muapi.generateImage({
+                model: 'nano-banana-pro',
                 prompt: finalPrompt,
-                aspect_ratio: settings.aspect_ratio,
-                resolution: (resolution || '1k').toLowerCase(),
-                negative_prompt: "blurry, low quality, distortion, bad composition",
-                ...(cost.credits ? { estimatedCredits: cost.credits } : {}),
-                onRequestId: queueRequest,
-            }),
-            {
-                onDone: (res) => {
-                    if (!res?.url) {
-                        queueHistory.fail(tempId);
-                        flash('Shot failed: no image URL returned by API');
-                        return;
+                aspect_ratio: currentSettings.aspect_ratio,
+                resolution: (resBtn.dataset.value || '1k').toLowerCase(),
+                negative_prompt: "blurry, low quality, distortion, bad composition"
+            });
+
+            if (res && res.url) {
+                // Save to history
+                addToHistory({
+                    url: res.url,
+                    timestamp: Date.now(),
+                    settings: {
+                        prompt: basePrompt,
+                        ...currentSettings,
+                        resolution: resBtn.dataset.value
                     }
-                    queueHistory.resolve(tempId, { url: res.url, timestamp: Date.now(), ...historyMeta });
-                    flash('Shot ready — open it from History on the right', false);
-                },
-                onFail: (e) => {
-                    console.error(e);
-                    queueHistory.fail(tempId);
-                    flash(`Shot failed: ${e.message.slice(0, 80)}`);
-                },
+                });
+
+                showCanvas(res.url);
+            } else {
+                throw new Error('No Data');
             }
-        ).catch((e) => {
+
+        } catch (e) {
             console.error(e);
-            queueHistory.fail(tempId);
-            flash(`Could not start shot: ${e.message.slice(0, 80)}`);
-        });
+            alert(t('cinema.generationFailed') + e.message);
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = t('cinema.generateBtn');
+        }
     };
 
     return container;

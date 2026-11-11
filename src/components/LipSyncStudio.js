@@ -1,16 +1,14 @@
-import { kie } from '../lib/kie.js';
+import { muapi } from '../lib/muapi.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { t } from '../lib/i18n.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { savePendingJob, removePendingJob, getPendingJobs, startGenerationJob } from '../lib/pendingJobs.js';
-import { sortByPriceDesc, loadPricing, priceChipHtml, costText, estimateCredits } from '../lib/modelSort.js';
-import { createQueueHistory, pendingThumbHtml, creditBadgeHtml, costMeta } from '../lib/studioQueue.js';
+import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
 
-    loadPricing();
     // --- State ---
     // 'image' mode: portrait image + audio → video
     // 'video' mode: existing video + audio → lipsync video
@@ -51,8 +49,8 @@ export function LipSyncStudio() {
                 <div class="absolute top-4 right-4 text-primary animate-pulse">🎙</div>
             </div>
         </div>
-        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">Lip Sync</h1>
-        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">Animate portraits or sync lips to audio with AI</p>
+        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">${t('lipsync.title')}</h1>
+        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">${t('lipsync.subtitle')}</p>
     `;
     container.appendChild(hero);
 
@@ -72,31 +70,22 @@ export function LipSyncStudio() {
 
     const modeLabel = document.createElement('span');
     modeLabel.className = 'text-xs text-muted font-bold uppercase tracking-widest mr-2';
-    modeLabel.textContent = 'Input:';
+    modeLabel.textContent = t('lipsync.input');
 
     const imageModeBtn = document.createElement('button');
     imageModeBtn.type = 'button';
     imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
-    imageModeBtn.textContent = '🖼 Portrait Image';
+    imageModeBtn.textContent = t('lipsync.portraitImage');
 
     const videoModeBtn = document.createElement('button');
     videoModeBtn.type = 'button';
     videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
-    videoModeBtn.textContent = '🎬 Video';
+    videoModeBtn.textContent = t('lipsync.video');
 
     modeToggleRow.appendChild(modeLabel);
     modeToggleRow.appendChild(imageModeBtn);
     modeToggleRow.appendChild(videoModeBtn);
     bar.appendChild(modeToggleRow);
-
-    // The current model registry has no video-input lip-sync models
-    // (videoLipSyncModels is empty) — disable the Video mode toggle
-    // instead of letting it crash on an empty model list.
-    if (videoLipSyncModels.length === 0) {
-        videoModeBtn.disabled = true;
-        videoModeBtn.title = 'No video-input lip-sync models available yet';
-        videoModeBtn.classList.add('opacity-40', 'cursor-not-allowed');
-    }
 
     // --- Uploads Row ---
     const uploadsRow = document.createElement('div');
@@ -107,12 +96,12 @@ export function LipSyncStudio() {
         anchorContainer: container,
         onSelect: ({ url }) => {
             uploadedImageUrl = url;
-            imageStatusLabel.textContent = '✓ Image ready';
+            imageStatusLabel.textContent = t('lipsync.imageReady');
             imageStatusLabel.className = 'text-primary';
         },
         onClear: () => {
             uploadedImageUrl = null;
-            imageStatusLabel.textContent = 'No image';
+            imageStatusLabel.textContent = t('lipsync.noImage');
             imageStatusLabel.className = 'text-muted';
         }
     });
@@ -156,7 +145,7 @@ export function LipSyncStudio() {
         videoReadyEl.classList.add('hidden'); videoReadyEl.classList.remove('flex');
         videoPickerBtn.classList.remove('border-primary/60'); videoPickerBtn.classList.add('border-white/10');
         videoPickerBtn.title = 'Upload source video';
-        mediaStatusLabel.textContent = 'No video'; mediaStatusLabel.className = 'text-muted';
+        mediaStatusLabel.textContent = t('lipsync.noVideo'); mediaStatusLabel.className = 'text-muted';
     };
     const showVideoSpinner = () => {
         videoIconEl.classList.add('hidden'); videoIconEl.classList.remove('flex');
@@ -180,12 +169,11 @@ export function LipSyncStudio() {
     videoFileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) { AuthModal(() => videoFileInput.click()); return; }
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         showVideoSpinner();
         try {
-            uploadedVideoUrl = await kie.uploadFile(file);
+            uploadedVideoUrl = await muapi.uploadFile(file);
             showVideoReady(file.name);
         } catch (err) { showVideoIcon(); alert(`Video upload failed: ${err.message}`); }
         videoFileInput.value = '';
@@ -225,7 +213,7 @@ export function LipSyncStudio() {
         audioReadyEl.classList.add('hidden'); audioReadyEl.classList.remove('flex');
         audioPickerBtn.classList.remove('border-primary/60'); audioPickerBtn.classList.add('border-white/10');
         audioPickerBtn.title = 'Upload audio file';
-        audioStatusLabel.textContent = 'No audio'; audioStatusLabel.className = 'text-muted';
+        audioStatusLabel.textContent = t('lipsync.noAudio'); audioStatusLabel.className = 'text-muted';
     };
     const showAudioSpinner = () => {
         audioIconEl.classList.add('hidden'); audioIconEl.classList.remove('flex');
@@ -249,12 +237,11 @@ export function LipSyncStudio() {
     audioFileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) { AuthModal(() => audioFileInput.click()); return; }
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         showAudioSpinner();
         try {
-            uploadedAudioUrl = await kie.uploadFile(file);
+            uploadedAudioUrl = await muapi.uploadFile(file);
             showAudioReady(file.name);
         } catch (err) { showAudioIcon(); alert(`Audio upload failed: ${err.message}`); }
         audioFileInput.value = '';
@@ -262,7 +249,7 @@ export function LipSyncStudio() {
 
     // ── Prompt Textarea ──
     const textarea = document.createElement('textarea');
-    textarea.placeholder = 'Optional: describe the talking style or motion...';
+    textarea.placeholder = t('lipsync.promptPlaceholder');
     textarea.className = 'flex-1 bg-transparent text-white placeholder-muted/50 text-sm resize-none outline-none min-h-[56px] leading-relaxed pt-1';
     textarea.rows = 2;
 
@@ -279,13 +266,13 @@ export function LipSyncStudio() {
     // mediaStatusLabel: shows image or video status depending on mode
     const mediaStatusLabel = document.createElement('span');
     mediaStatusLabel.className = 'text-muted';
-    mediaStatusLabel.textContent = 'No image';
+    mediaStatusLabel.textContent = t('lipsync.noImage');
 
     const imageStatusLabel = mediaStatusLabel; // alias used in imagePicker callbacks
 
     const audioStatusLabel = document.createElement('span');
     audioStatusLabel.className = 'text-muted';
-    audioStatusLabel.textContent = 'No audio';
+    audioStatusLabel.textContent = t('lipsync.noAudio');
 
     statusRow.appendChild(mediaStatusLabel);
     statusRow.appendChild(document.createTextNode(' · '));
@@ -315,21 +302,10 @@ export function LipSyncStudio() {
     generateBtn.id = 'ls-generate-btn';
     generateBtn.type = 'button';
     generateBtn.className = 'ml-auto px-6 py-2.5 bg-primary text-black font-black text-sm rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
-    generateBtn.textContent = 'Generate ✨';
-
-    // Cost of the next run beside Generate ("≈ N cr", or a per-second rate when the length depends on the audio).
-    const costEl = document.createElement('span');
-    costEl.className = 'ml-auto text-[11px] font-bold text-secondary whitespace-nowrap';
-    generateBtn.classList.remove('ml-auto');
-    const refreshCost = () => {
-        const model = getCurrentModel();
-        costEl.textContent = model ? costText(model, { resolution: selectedResolution }) : '';
-    };
-    loadPricing().then(refreshCost);
+    generateBtn.textContent = t('common.generate');
 
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
-    bottomRow.appendChild(costEl);
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
 
@@ -344,7 +320,6 @@ export function LipSyncStudio() {
     dropdown.id = 'ls-dropdown';
 
     const closeDropdown = (e) => {
-        refreshCost();
         if (!e || (!dropdown.contains(e.target) && !e.target.closest('[id^="ls-"]'))) {
             dropdown.classList.add('hidden');
             dropdownOpen = null;
@@ -354,12 +329,12 @@ export function LipSyncStudio() {
     const populateDropdown = (type) => {
         dropdown.innerHTML = '';
         if (type === 'model') {
-            const models = sortByPriceDesc(getCurrentModels());
+            const models = getCurrentModels();
             models.forEach(m => {
                 const item = document.createElement('button');
                 item.type = 'button';
                 item.className = `w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 ${m.id === selectedModel ? 'text-primary font-bold bg-primary/5' : 'text-white font-medium'}`;
-                item.innerHTML = `<div class="flex items-center justify-between gap-2"><span>${m.name}</span>${priceChipHtml(m, selectedResolution)}</div><div class="text-xs text-muted mt-0.5">${m.description?.slice(0, 60)}...</div>`;
+                item.innerHTML = `<div>${m.name}</div><div class="text-xs text-muted mt-0.5">${m.description?.slice(0, 60)}...</div>`;
                 item.onclick = () => {
                     selectedModel = m.id;
                     document.getElementById('ls-model-btn-label').textContent = m.name;
@@ -433,20 +408,19 @@ export function LipSyncStudio() {
             videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
             imagePicker.trigger.classList.remove('hidden');
             videoPickerBtn.classList.add('hidden');
-            mediaStatusLabel.textContent = uploadedImageUrl ? '✓ Image ready' : 'No image';
+            mediaStatusLabel.textContent = uploadedImageUrl ? t('lipsync.imageReady') : t('lipsync.noImage');
             mediaStatusLabel.className = uploadedImageUrl ? 'text-primary' : 'text-muted';
         } else {
             videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
             imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
             videoPickerBtn.classList.remove('hidden');
             imagePicker.trigger.classList.add('hidden');
-            mediaStatusLabel.textContent = uploadedVideoUrl ? '✓ Video ready' : 'No video';
+            mediaStatusLabel.textContent = uploadedVideoUrl ? t('lipsync.videoReady') : t('lipsync.noVideo');
             mediaStatusLabel.className = uploadedVideoUrl ? 'text-primary' : 'text-muted';
         }
 
         // Switch to first model of new mode
         const models = getCurrentModels();
-        if (models.length === 0) return;
         selectedModel = models[0].id;
         document.getElementById('ls-model-btn-label').textContent = models[0].name;
 
@@ -473,7 +447,7 @@ export function LipSyncStudio() {
     };
 
     videoModeBtn.onclick = () => {
-        if (inputMode === 'video' || videoLipSyncModels.length === 0) return;
+        if (inputMode === 'video') return;
         inputMode = 'video';
         uploadedImageUrl = null;
         imagePicker.reset();
@@ -496,7 +470,7 @@ export function LipSyncStudio() {
 
     const historyLabel = document.createElement('div');
     historyLabel.className = 'text-[9px] font-bold text-muted uppercase tracking-widest mb-2';
-    historyLabel.textContent = 'History';
+    historyLabel.textContent = t('lipsync.history');
     historySidebar.appendChild(historyLabel);
 
     const historyList = document.createElement('div');
@@ -525,15 +499,15 @@ export function LipSyncStudio() {
 
     const regenerateBtn = document.createElement('button');
     regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    regenerateBtn.textContent = '↻ Regenerate';
+    regenerateBtn.textContent = t('lipsync.regenerate');
 
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
+    downloadBtn.textContent = t('lipsync.download');
 
     const newBtn = document.createElement('button');
     newBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    newBtn.textContent = '+ New';
+    newBtn.textContent = t('lipsync.new');
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
@@ -554,38 +528,21 @@ export function LipSyncStudio() {
         };
     };
 
-    const flashBanner = (text, isError = true) => {
-        const el = document.createElement('div');
-        el.className = `fixed top-20 left-1/2 pointer-events-none -translate-x-1/2 z-[200] bg-[#111] border ${isError ? 'border-red-500/40' : 'border-primary/40'} text-white text-sm px-5 py-3 rounded-2xl shadow-xl`;
-        el.textContent = text;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 5000);
-    };
-
-    const revealHistory = () => {
+    const addToHistory = (entry) => {
+        generationHistory.unshift(entry);
+        localStorage.setItem('lipsync_history', JSON.stringify(generationHistory.slice(0, 30)));
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
         historySidebar.classList.add('translate-x-0', 'opacity-100');
+        renderHistory();
     };
-    const queueHistory = createQueueHistory({
-        history: generationHistory, storageKey: 'lipsync_history', limit: 30,
-        render: () => renderHistory(), reveal: revealHistory,
-    });
-    const addToHistory = (entry) => queueHistory.resolve(null, entry);
 
     const renderHistory = () => {
         historyList.innerHTML = '';
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
-            thumb.className = `relative group/thumb ${entry.pending ? '' : 'cursor-pointer'} rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;
-            if (entry.pending) {
-                thumb.title = entry.prompt ? `Generating: ${entry.prompt.slice(0, 80)}` : 'Generating…';
-                thumb.innerHTML = pendingThumbHtml(entry);
-                historyList.appendChild(thumb);
-                return;
-            }
+            thumb.className = `relative group/thumb cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;
             thumb.innerHTML = `
                 <video src="${entry.url}" preload="metadata" muted class="w-full aspect-square object-cover"></video>
-                ${creditBadgeHtml(entry)}
                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
                     <button class="hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform" title="Download">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -631,26 +588,21 @@ export function LipSyncStudio() {
     (async () => {
         const pending = getPendingJobs('lipsync');
         if (!pending.length) return;
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !localStorage.getItem('cf_backend')) return;
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) return;
         const banner = document.createElement('div');
-        banner.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 pointer-events-none';
+        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
         banner.innerHTML = `<span class="animate-spin text-primary">◌</span> <span class="banner-text">Resuming ${pending.length} pending generation${pending.length > 1 ? 's' : ''}…</span>`;
         document.body.appendChild(banner);
-        // Brief notice only; the Queued cards in History show progress from here on.
-        setTimeout(() => banner.remove(), 4000);
         let remaining = pending.length;
         pending.forEach(async (job) => {
-            const tempId = queueHistory.addPending({ ...job.historyMeta });
             const elapsedAttempts = Math.floor((Date.now() - job.submittedAt) / job.interval);
             const attemptsLeft = Math.max(1, job.maxAttempts - elapsedAttempts);
             try {
-                const result = await kie.pollForResult(job.requestId, apiKey, attemptsLeft, job.interval);
+                const result = await muapi.pollForResult(job.requestId, apiKey, attemptsLeft, job.interval);
                 const url = result.outputs?.[0] || result.url || result.output?.url;
-                if (url) queueHistory.resolve(tempId, { id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
-                else queueHistory.fail(tempId);
-            } catch (e) { queueHistory.fail(tempId); console.warn('[LipSyncStudio] Pending job failed:', job.requestId, e.message); }
+                if (url) addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+            } catch (e) { console.warn('[LipSyncStudio] Pending job failed:', job.requestId, e.message); }
             finally {
                 removePendingJob(job.requestId);
                 remaining--;
@@ -671,12 +623,7 @@ export function LipSyncStudio() {
         }
     };
 
-    regenerateBtn.onclick = () => {
-        // Uploads are cleared after every Generate, so a regenerate needs fresh inputs.
-        newBtn.onclick();
-        const entry = generationHistory.find(e => e.url === resultVideo.src);
-        if (entry?.prompt) textarea.value = entry.prompt;
-    };
+    regenerateBtn.onclick = () => generateBtn.click();
 
     newBtn.onclick = () => {
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
@@ -693,26 +640,11 @@ export function LipSyncStudio() {
         uploadedAudioUrl = null;
         showVideoIcon();
         showAudioIcon();
-        mediaStatusLabel.textContent = inputMode === 'image' ? 'No image' : 'No video';
+        mediaStatusLabel.textContent = inputMode === 'image' ? t('lipsync.noImage') : t('lipsync.noVideo');
         mediaStatusLabel.className = 'text-muted';
-        audioStatusLabel.textContent = 'No audio';
+        audioStatusLabel.textContent = t('lipsync.noAudio');
         audioStatusLabel.className = 'text-muted';
         textarea.focus();
-    };
-
-    // Clear uploads after a submit (model and resolution stay).
-    const resetInputs = () => {
-        imagePicker.reset();
-        uploadedImageUrl = null;
-        uploadedVideoUrl = null;
-        uploadedAudioUrl = null;
-        showVideoIcon();
-        showAudioIcon();
-        mediaStatusLabel.textContent = inputMode === 'image' ? 'No image' : 'No video';
-        mediaStatusLabel.className = 'text-muted';
-        audioStatusLabel.textContent = 'No audio';
-        audioStatusLabel.className = 'text-muted';
-        refreshCost();
     };
 
     // ==========================================
@@ -724,92 +656,76 @@ export function LipSyncStudio() {
 
         // Validation
         if (!uploadedAudioUrl) {
-            alert('Please upload an audio file first.');
+            alert(t('lipsync.noAudioAlert'));
             return;
         }
         if (inputMode === 'image' && !uploadedImageUrl) {
-            alert('Please upload a portrait image first.');
+            alert(t('lipsync.noImageAlert'));
             return;
         }
         if (inputMode === 'video' && !uploadedVideoUrl) {
-            alert('Please upload a source video first.');
+            alert(t('lipsync.noVideoAlert'));
             return;
         }
 
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) { AuthModal(() => generateBtn.click()); return; }
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) { AuthModal(() => generateBtn.click()); return; }
 
-        // Snapshot this run, then clear the form so the next one can start immediately.
-        const submittedModel = selectedModel;
-        const submittedMode = inputMode;
-        const submittedImage = uploadedImageUrl;
-        const submittedVideo = uploadedVideoUrl;
-        const submittedAudio = uploadedAudioUrl;
-        const submittedResolution = selectedResolution;
-        const cost = model ? costMeta(model, { resolution: submittedResolution }) : {};
-        const historyMeta = { prompt, model: submittedModel, ...cost };
-        let queuedId = null;
+        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> ${t('common.generating')}`;
 
-        const tempId = queueHistory.addPending(historyMeta);
-        textarea.value = '';
-        resetInputs();
+        let hadError = false;
+        let capturedRequestId = null;
+        const historyMeta = { prompt, model: selectedModel };
 
-        const runJob = (queueRequest) => {
-            const onRequestId = (rid) => {
-                queuedId = rid;
-                queueRequest(rid);
-            };
+        const onRequestId = (rid) => {
+            capturedRequestId = rid;
+            savePendingJob({ requestId: rid, studioType: 'lipsync', historyMeta, maxAttempts: 900, interval: 2000, submittedAt: Date.now() });
+        };
 
+        try {
             const lipsyncParams = {
-                model: submittedModel,
-                audio_url: submittedAudio,
+                model: selectedModel,
+                audio_url: uploadedAudioUrl,
                 onRequestId
             };
 
-            if (submittedMode === 'image') {
-                lipsyncParams.image_url = submittedImage;
+            if (inputMode === 'image') {
+                lipsyncParams.image_url = uploadedImageUrl;
             } else {
-                lipsyncParams.video_url = submittedVideo;
+                lipsyncParams.video_url = uploadedVideoUrl;
             }
 
             if (prompt && model?.hasPrompt) lipsyncParams.prompt = prompt;
 
-            const resolutions = getResolutionsForLipSyncModel(submittedModel);
-            if (resolutions.length > 0) lipsyncParams.resolution = submittedResolution;
+            const resolutions = getResolutionsForLipSyncModel(selectedModel);
+            if (resolutions.length > 0) lipsyncParams.resolution = selectedResolution;
 
             if (model?.hasSeed) lipsyncParams.seed = -1;
-            if (cost.credits) lipsyncParams.estimatedCredits = cost.credits;
 
-            return kie.processLipSync(lipsyncParams);
-        };
+            const res = await muapi.processLipSync(lipsyncParams);
+            console.log('[LipSyncStudio] Response:', res);
 
-        // Not awaited: the studio stays usable while the job is queued and polled.
-        startGenerationJob(
-            { studioType: 'lipsync', historyMeta, maxAttempts: 900, interval: 2000 },
-            runJob,
-            {
-                onDone: (res) => {
-                    console.log('[LipSyncStudio] Response:', res);
-                    if (!res?.url) {
-                        queueHistory.fail(tempId);
-                        flashBanner('Lip sync failed: no video URL returned by API');
-                        return;
-                    }
-                    queueHistory.resolve(tempId, { id: res.id || queuedId || Date.now().toString(), url: res.url, ...historyMeta, timestamp: new Date().toISOString() });
-                    flashBanner('Lip sync ready — open it from History on the right', false);
-                },
-                onFail: (e) => {
-                    console.error('[LipSyncStudio] Generation failed:', e);
-                    queueHistory.fail(tempId);
-                    flashBanner(`Lip sync failed: ${e.message.slice(0, 80)}`);
-                },
+            if (res && res.url) {
+                if (capturedRequestId) removePendingJob(capturedRequestId);
+                const genId = res.id || capturedRequestId || Date.now().toString();
+                addToHistory({ id: genId, url: res.url, prompt, model: selectedModel, timestamp: new Date().toISOString() });
+                showVideoInCanvas(res.url);
+            } else {
+                throw new Error('No video URL returned by API');
             }
-        ).catch((e) => {
-            console.error('[LipSyncStudio] Could not queue generation:', e);
-            queueHistory.fail(tempId);
-            flashBanner(`Could not start lip sync: ${e.message.slice(0, 80)}`);
-        });
+        } catch (e) {
+            hadError = true;
+            if (capturedRequestId) removePendingJob(capturedRequestId);
+            console.error(e);
+            hero.classList.remove('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+            generateBtn.innerHTML = `Error: ${e.message.slice(0, 60)}`;
+            setTimeout(() => { generateBtn.innerHTML = t('common.generate'); }, 4000);
+        } finally {
+            generateBtn.disabled = false;
+            if (!hadError) generateBtn.innerHTML = t('common.generate');
+        }
     };
 
     return container;

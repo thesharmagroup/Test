@@ -1,44 +1,47 @@
-import { BackendModal } from './BackendModal.js';
+import { t } from '../lib/i18n.js';
 
 export function AuthModal(onSuccess) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6';
 
     const modal = document.createElement('div');
-    modal.className = 'w-full max-w-md bg-panel-bg border border-white/10 rounded-3xl p-8 shadow-3xl animate-fade-in-up';
+    modal.className = 'relative w-full max-w-md bg-panel-bg border border-white/10 rounded-3xl p-8 shadow-3xl animate-fade-in-up';
 
     modal.innerHTML = `
+        <button id="auth-modal-close-btn" type="button" aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
         <div class="flex flex-col items-center text-center mb-8">
             <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-glow mb-6">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2">
                     <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3m-3-3l-2.25-2.25"/>
                 </svg>
             </div>
-            <h2 class="text-2xl font-black text-white uppercase tracking-wider mb-2">Kie.ai API Key Required</h2>
-            <p class="text-secondary text-sm">Please provide your kie.ai API key to start creating high-aesthetic images.</p>
+            <h2 class="text-2xl font-black text-white uppercase tracking-wider mb-2">${t('auth.title')}</h2>
+            <p class="text-secondary text-sm">${t('auth.subtitle')}</p>
         </div>
 
         <div class="space-y-6">
             <div class="space-y-2">
-                <label class="text-[10px] font-bold text-muted uppercase tracking-widest ml-1">Your API Key</label>
-                <input 
-                    type="password" 
-                    id="kie-key-input"
-                    placeholder="Enter your Kie.ai API key..."
+                <label class="text-[10px] font-bold text-muted uppercase tracking-widest ml-1">${t('auth.keyLabel')}</label>
+                <input
+                    type="password"
+                    id="muapi-key-input"
+                    placeholder="${t('auth.keyPlaceholder')}"
                     class="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors shadow-inner"
                 >
+                <p class="text-[11px] text-muted ml-1">${t('auth.keyNote')}</p>
             </div>
 
             <div class="flex flex-col gap-3">
                 <button id="save-key-btn" class="w-full bg-primary text-black font-black py-4 rounded-2xl hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    Initialize Studio
+                    ${t('auth.initBtn')}
                 </button>
-                <a href="https://kie.ai/api-key" target="_blank" class="text-center text-[11px] font-bold text-muted hover:text-white transition-colors py-2 uppercase tracking-tighter">
-                    Get an API Key at kie.ai →
+                <a href="https://muapi.ai/access-keys" target="_blank" rel="noreferrer" class="text-center text-[11px] font-bold text-muted hover:text-white transition-colors py-2 uppercase tracking-tighter">
+                    ${t('auth.createKey')}
                 </a>
-                <button id="backend-login-btn" class="w-full border border-white/10 text-white font-bold py-3 rounded-2xl hover:bg-white/5 transition-all text-sm">
-                    Or sign in with content-factory →
-                </button>
             </div>
         </div>
     `;
@@ -46,24 +49,35 @@ export function AuthModal(onSuccess) {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    const input = modal.querySelector('#kie-key-input');
+    const input = modal.querySelector('#muapi-key-input');
     const btn = modal.querySelector('#save-key-btn');
+    const closeBtn = modal.querySelector('#auth-modal-close-btn');
+
+    const close = () => {
+        document.removeEventListener('keydown', onKeydown);
+        if (overlay.parentNode) document.body.removeChild(overlay);
+    };
+
+    const onKeydown = (e) => {
+        if (e.key === 'Escape') close();
+    };
+    document.addEventListener('keydown', onKeydown);
+
+    closeBtn.onclick = close;
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) close();
+    });
 
     btn.onclick = () => {
         const key = input.value.trim();
         if (key) {
-            localStorage.setItem('kie_key', key);
-            document.body.removeChild(overlay);
+            localStorage.setItem('muapi_key', key);
+            close();
             if (onSuccess) onSuccess();
         } else {
             input.classList.add('border-red-500/50');
             setTimeout(() => input.classList.remove('border-red-500/50'), 2000);
         }
-    };
-
-    modal.querySelector('#backend-login-btn').onclick = () => {
-        document.body.removeChild(overlay);
-        document.body.appendChild(BackendModal(onSuccess));
     };
 
     return overlay;
