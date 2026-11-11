@@ -1,4 +1,4 @@
-import { kie } from '../lib/kie.js';
+import { muapi } from '../lib/muapi.js';
 import { AuthModal } from './AuthModal.js';
 import { getUploadHistory, saveUpload, removeUpload, generateThumbnail } from '../lib/uploadHistory.js';
 
@@ -13,7 +13,12 @@ import { getUploadHistory, saveUpload, removeUpload, generateThumbnail } from '.
  * @param {number} [options.maxImages=1] - Maximum number of images selectable
  * @returns {{ trigger: HTMLElement, panel: HTMLElement, reset: function, setMaxImages: function }}
  */
-export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImages: initialMaxImages = 1 }) {
+export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImages: initialMaxImages = 1, uploadFn, requireApiKey }) {
+    // uploadFn(file) → Promise<string url>. Defaults to Muapi-hosted upload.
+    // requireApiKey() → boolean. Lets the caller suppress the AuthModal when
+    // the active provider doesn't need a Muapi key (e.g. local Wan2GP).
+    const doUpload = uploadFn || ((file) => muapi.uploadFile(file));
+    const needsKey = typeof requireApiKey === 'function' ? requireApiKey : () => true;
     let panelOpen = false;
     let maxImages = initialMaxImages;
     let selectedEntries = []; // [{ url, thumbnail }, ...]
@@ -318,11 +323,12 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
-        // Either a direct kie.ai key or a signed-in backend session can upload.
-        const apiKey = localStorage.getItem('kie_key');
-        if (!apiKey && !localStorage.getItem('cf_backend')) {
-            AuthModal(() => fileInput.click());
-            return;
+        if (needsKey()) {
+            const apiKey = localStorage.getItem('muapi_key');
+            if (!apiKey) {
+                AuthModal(() => fileInput.click());
+                return;
+            }
         }
 
         showSpinner();
@@ -331,10 +337,11 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             if (maxImages === 1) {
                 // Single mode: upload first file only, replace selection
                 const file = files[0];
-                const [uploadedUrl, thumbnail] = await Promise.all([
-                    kie.uploadFile(file),
+                const [uploadResult, thumbnail] = await Promise.all([
+                    doUpload(file),
                     generateThumbnail(file)
                 ]);
+                const uploadedUrl = typeof uploadResult === 'string' ? uploadResult : uploadResult?.url;
                 const entry = { id: Date.now().toString(), name: file.name, uploadedUrl, thumbnail, timestamp: new Date().toISOString() };
                 saveUpload(entry);
                 selectedEntries = [{ url: uploadedUrl, thumbnail }];
@@ -347,10 +354,11 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
 
                 // Upload all in parallel
                 const results = await Promise.all(toUpload.map(async (file) => {
-                    const [uploadedUrl, thumbnail] = await Promise.all([
-                        kie.uploadFile(file),
+                    const [uploadResult, thumbnail] = await Promise.all([
+                        doUpload(file),
                         generateThumbnail(file)
                     ]);
+                    const uploadedUrl = typeof uploadResult === 'string' ? uploadResult : uploadResult?.url;
                     return { id: Date.now().toString() + Math.random(), name: file.name, uploadedUrl, thumbnail, timestamp: new Date().toISOString() };
                 }));
 
@@ -403,12 +411,5 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         fireOnSelect();
     };
 
-    // Select several existing images at once (e.g. a saved character's portraits).
-    const setImages = (items) => {
-        selectedEntries = items.slice(0, maxImages).map(i => ({ url: i.url, thumbnail: i.thumb || i.url }));
-        updateTrigger();
-        fireOnSelect();
-    };
-
-    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, setImages };
+    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage };
 }

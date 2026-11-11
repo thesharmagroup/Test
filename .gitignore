@@ -23,7 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local Netlify folder
-.netlify
-*.tsbuildinfo
-.next
+# Electron build output
+release/
+.webpack/
+
+# Next.js
+.next/
+out/
+
+# Misc
+*.pem
+.env
+.env.*
+!.env.example

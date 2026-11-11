@@ -1,25 +1,59 @@
-import { kie } from '../lib/kie.js';
-import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels, getModesForModel } from '../lib/models.js';
+import { muapi } from '../lib/muapi.js';
+import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { t, tf } from '../lib/i18n.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { savePendingJob, removePendingJob, getPendingJobs, startGenerationJob } from '../lib/pendingJobs.js';
-import { sortByPriceDesc, loadPricing, priceChipHtml, costText } from '../lib/modelSort.js';
-import { createQueueHistory, pendingThumbHtml, creditBadgeHtml, costMeta } from '../lib/studioQueue.js';
-import { advancedFieldsFor } from '../lib/videoSpecs.js';
-import { CAMERA_PRESETS } from '../lib/presets.js';
-import { VIDEO_STYLES, fitModels, pickBest, fitInfo, lockInstruction, joinPrompt, voiceCredits, voiceSeconds } from '../lib/modelStyles.js';
-import { makeVoiceover } from '../lib/api.js';
-import { takeHandoff } from '../lib/handoff.js';
-import { createSetupPanel } from './SetupPanel.js';
-import { esc } from '../lib/resultCards.js';
+import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
+import { localAI, isLocalAIAvailable } from '../lib/localInferenceClient.js';
+import { isWan2gpModelId, getLocalModelById, localT2VModels, localI2VModels } from '../lib/localModels.js';
+
+// Promotes a wan2gp catalog entry (lib/localModels.js shape) into the
+// `inputs`-shaped descriptor the Video Studio dropdowns/controls expect.
+const adaptLocalToVideoEntry = (m) => ({
+    id: m.id,
+    name: m.name,
+    family: m.family,
+    provider: 'wan2gp',
+    inputs: {
+        prompt: { type: 'string', name: 'prompt', title: 'Prompt' },
+        aspect_ratio: { type: 'string', name: 'aspect_ratio', enum: m.aspectRatios || ['16:9', '1:1', '9:16'], default: (m.aspectRatios || ['16:9'])[0] },
+    },
+});
+
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const formatBytes = (bytes) => bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${Math.round(bytes / 1024 ** 2)} MB`;
+
+// Progress label for a Wan2GP event ({ status, step, totalSteps, downloadedBytes, message }).
+const localProgressLabel = ({ status, step, totalSteps, downloadedBytes, message }) => {
+    if (status === 'downloading') return tf('video.localDownloading', formatBytes(downloadedBytes || 0));
+    if (status === 'loading') return t('video.localLoading');
+    if (status === 'encoding') return t('video.localEncoding');
+    if (status === 'generating' && totalSteps) return tf('video.localStep', step, totalSteps);
+    if (status === 'decoding') return t('video.localDecoding');
+    if (status === 'saving' || status === 'done') return t('video.localSaving');
+    return message || t('video.localStarting');
+};
 
 export function VideoStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
 
+    // Cloud (Muapi) and local (Wan2GP) models live in separate lists; the
+    // "⚡ Local" toggle — shown only in the desktop app — picks which one the
+    // model dropdown and generation use.
+    const localT2V = isLocalAIAvailable() ? localT2VModels.map(adaptLocalToVideoEntry) : [];
+    const localI2V = isLocalAIAvailable() ? localI2VModels.map(adaptLocalToVideoEntry) : [];
+    const allT2V = t2vModels;
+    const allI2V = i2vModels;
+    let useLocalModel = false;
+    // id → { ready, unavailableReason, availabilityNote } from the Wan2GP engine
+    let localAvailability = new Map();
+    const t2vList = () => useLocalModel ? localT2V : allT2V;
+    const i2vList = () => useLocalModel ? localI2V : allI2V;
+
     // --- State ---
-    loadPricing();
-    const defaultModel = t2vModels[0];
+    const defaultModel = allT2V[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';
@@ -27,39 +61,42 @@ export function VideoStudio() {
     let selectedResolution = defaultModel.inputs?.resolution?.default || '';
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let selectedMode = '';
+    let selectedEffectName = '';
     let lastGenerationId = null;
     let lastGenerationModel = null;
     let dropdownOpen = null;
     let uploadedImageUrl = null;
+    let uploadedEndImageUrl = null; // optional end-frame for FLF i2v models
     let imageMode = false; // false = t2v models, true = i2v models
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
-    let advancedOpen = false;
-    let selectedCamera = CAMERA_PRESETS[0];
-    let setup = null; // shot setup panel (look + character/item locks), created with the prompt bar
-    let advancedValues = {}; // per-model values for the Advanced panel, reset on model change
 
-    // With a character/item lock on, every model that takes reference photos is a candidate.
-    const lockOn = () => !!setup?.getState().locks;
-    const lockPool = () => { const seen = new Set(); return [...t2vModels, ...i2vModels].filter(m => !seen.has(m.id) && seen.add(m.id)); };
-    const getCurrentModels = () => v2vMode ? v2vModels : (lockOn() ? lockPool() : (imageMode ? i2vModels : t2vModels));
-    // Best model in a list for the current look (no lock), used when switching lists.
-    const bestOf = (list, currentId = '') => {
-        const st = setup?.getState() || { style: 'any', locks: false, refCount: 0 };
-        return pickBest(fitModels(st.locks ? lockPool() : list, st), currentId) || list[0];
+    const getCurrentModels = () => v2vMode ? v2vModels : (imageMode ? i2vList() : t2vList());
+    // Local Wan2GP entries don't live in the Muapi-derived helpers, so we
+    // resolve aspect ratios off the catalog when the selected id is local.
+    const getCurrentAspectRatios = (id) => {
+        const local = getLocalModelById(id);
+        if (local) return local.aspectRatios || ['16:9', '1:1', '9:16'];
+        return imageMode ? getAspectRatiosForI2VModel(id) : getAspectRatiosForVideoModel(id);
     };
-    const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2VModel(id) : getAspectRatiosForVideoModel(id);
     const getCurrentDurations = (id) => {
-        const ref = lockOn() && fitInfo(id)?.refDuration;
-        if (ref) return [ref]; // e.g. Veo reference mode is 8s only
+        if (getLocalModelById(id)) return [];
         return imageMode ? getDurationsForI2VModel(id) : getDurationsForModel(id);
     };
-    const getCurrentResolutions = (id) => imageMode ? getResolutionsForI2VModel(id) : getResolutionsForVideoModel(id);
-    const getCurrentModes = (id) => getModesForModel(id);
+    const getCurrentResolutions = (id) => {
+        if (getLocalModelById(id)) return [];
+        return imageMode ? getResolutionsForI2VModel(id) : getResolutionsForVideoModel(id);
+    };
+    const getCurrentModes = (id) => getCurrentModels().find(m => m.id === id)?.inputs?.mode?.enum || [];
     const getCurrentModel = () => getCurrentModels().find(m => m.id === selectedModel);
+    const isMotionControlV2V = () => v2vMode && !!getCurrentModel()?.imageField;
     const getQualitiesForModel = (id) => {
         const model = getCurrentModels().find(m => m.id === id);
         return model?.inputs?.quality?.enum || [];
+    };
+    const getEffectNamesForModel = (id) => {
+        const model = getCurrentModels().find(m => m.id === id);
+        return model?.inputs?.name?.enum || [];
     };
 
     // ==========================================
@@ -84,8 +121,8 @@ export function VideoStudio() {
                 <div class="absolute top-4 right-4 text-primary animate-pulse">✨</div>
              </div>
         </div>
-        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">Video Studio</h1>
-        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">Animate images into stunning AI videos with motion effects</p>
+        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">${t('video.title')}</h1>
+        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">${t('video.subtitle')}</p>
     `;
     container.appendChild(hero);
 
@@ -99,9 +136,6 @@ export function VideoStudio() {
     const bar = document.createElement('div');
     bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
-    setup = createSetupPanel({ styles: VIDEO_STYLES, withSound: true, onChange: () => onSetupChange() });
-    bar.appendChild(setup.element);
-
     const topRow = document.createElement('div');
     topRow.className = 'flex items-start gap-5 px-2';
 
@@ -110,6 +144,14 @@ export function VideoStudio() {
         anchorContainer: container,
         onSelect: ({ url }) => {
             uploadedImageUrl = url;
+            // Motion-control v2v: image is a second input alongside the video, not a mode switch
+            if (isMotionControlV2V()) {
+                textarea.disabled = false;
+                textarea.placeholder = uploadedVideoUrl
+                    ? (getCurrentModel()?.promptRequired ? 'Describe the motion' : 'Describe the motion (optional)')
+                    : 'Now upload a reference video using the 🎥 button';
+                return;
+            }
             // Clear video mode if active
             if (v2vMode) {
                 uploadedVideoUrl = null;
@@ -118,35 +160,81 @@ export function VideoStudio() {
             }
             if (!imageMode) {
                 imageMode = true;
-                const keep = i2vModels.find(m => m.id === selectedModel);
-                const next = keep || bestOf(i2vModels, selectedModel);
-                if (next) {
-                    selectedModel = next.id;
-                    selectedModelName = next.name;
-                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                }
-                updateControlsForModel(selectedModel, !!keep);
-            } else {
-                renderAdvanced();
+                const currentT2V = t2vList().find(m => m.id === selectedModel);
+                const sibling = currentT2V?.family
+                    ? i2vList().find(m => m.family === currentT2V.family)
+                    : null;
+                const target = sibling || i2vList()[0];
+                selectedModel = target.id;
+                selectedModelName = target.name;
+                document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateControlsForModel(selectedModel);
             }
-            textarea.placeholder = 'Describe the motion or what happens in the video';
+            textarea.placeholder = 'Describe the motion or effect (optional)';
             textarea.disabled = false;
         },
         onClear: () => {
             uploadedImageUrl = null;
+            // Motion-control v2v: keep the model selection; just lose the image
+            if (isMotionControlV2V()) return;
             imageMode = false;
-            const keep = t2vModels.find(m => m.id === selectedModel);
-            const next = keep || bestOf(t2vModels, selectedModel);
-            selectedModel = next.id;
-            selectedModelName = next.name;
+            // Clearing the start frame invalidates any selected end frame.
+            uploadedEndImageUrl = null;
+            endPicker?.reset();
+            selectedModel = t2vList()[0].id;
+            selectedModelName = t2vList()[0].name;
             document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateControlsForModel(selectedModel, !!keep);
-            textarea.placeholder = 'Describe the video you want to create';
+            updateControlsForModel(selectedModel);
+            textarea.placeholder = t('video.placeholder');
             textarea.disabled = false;
-        }
+        },
+        // Local mode keeps the start frame on disk for Wan2GP; otherwise fall
+        // back to the Muapi-hosted upload.
+        uploadFn: (file) => useLocalModel ? localAI.uploadFileToWan2gp(file) : muapi.uploadFile(file),
+        requireApiKey: () => !useLocalModel,
     });
     topRow.appendChild(picker.trigger);
     container.appendChild(picker.panel);
+
+    // --- End-Frame Upload Picker (FLF i2v models — kling/veo/seedance/etc.) ---
+    // Shown only when imageMode is on AND the selected i2v model declares a
+    // `lastImageField` in its catalog entry. Reuses the same UploadPicker UI;
+    // a corner badge differentiates it from the start-frame picker.
+    const endPicker = createUploadPicker({
+        anchorContainer: container,
+        onSelect: ({ url }) => { uploadedEndImageUrl = url; },
+        onClear: () => { uploadedEndImageUrl = null; },
+        uploadFn: (file) => useLocalModel ? localAI.uploadFileToWan2gp(file) : muapi.uploadFile(file),
+        requireApiKey: () => !useLocalModel,
+    });
+    endPicker.trigger.title = 'End frame (optional)';
+    // Visual marker: small "L" badge in the corner so users can tell the two
+    // pickers apart at a glance. The wrapper keeps it from interfering with
+    // UploadPicker's own thumbnail/spinner state swapping.
+    const endBadge = document.createElement('div');
+    endBadge.className = 'absolute top-0.5 left-0.5 px-1 h-4 bg-white/20 rounded-md flex items-center justify-center pointer-events-none';
+    endBadge.innerHTML = '<span class="text-[8px] font-black text-white leading-none">END</span>';
+    endPicker.trigger.appendChild(endBadge);
+    endPicker.trigger.classList.add('hidden'); // start hidden until updateEndFrameVisibility flips it on
+    topRow.appendChild(endPicker.trigger);
+    container.appendChild(endPicker.panel);
+
+    const updateEndFrameVisibility = () => {
+        const model = getCurrentModel();
+        const supports = imageMode && !!model?.lastImageField;
+        if (supports) {
+            endPicker.trigger.classList.remove('hidden');
+            endPicker.trigger.classList.add('flex');
+        } else {
+            endPicker.trigger.classList.add('hidden');
+            endPicker.trigger.classList.remove('flex');
+            // Drop any stale end-frame selection when leaving FLF-capable state
+            if (uploadedEndImageUrl) {
+                uploadedEndImageUrl = null;
+                endPicker.reset();
+            }
+        }
+    };
 
     // --- Video Upload Picker (Video-to-Video) ---
     const videoFileInput = document.createElement('input');
@@ -169,7 +257,7 @@ export function VideoStudio() {
 
     const videoReadyEl = document.createElement('div');
     videoReadyEl.className = 'hidden items-center justify-center w-full h-full';
-    videoReadyEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polyline points="7 10 10 13 15 8" stroke="#ff2d2d" stroke-width="2.5"/></svg>`;
+    videoReadyEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><polyline points="7 10 10 13 15 8" stroke="#22d3ee" stroke-width="2.5"/></svg>`;
 
     videoPickerBtn.appendChild(videoFileInput);
     videoPickerBtn.appendChild(videoIconEl);
@@ -202,9 +290,15 @@ export function VideoStudio() {
 
     const clearVideoUpload = () => {
         uploadedVideoUrl = null;
-        v2vMode = false;
         showVideoIcon();
-        { const first = bestOf(t2vModels); selectedModel = first.id; selectedModelName = first.name; }
+        // Motion-control v2v: keep the model and image; user can re-upload a video
+        if (isMotionControlV2V()) {
+            textarea.placeholder = 'Upload a reference video using the 🎥 button';
+            return;
+        }
+        v2vMode = false;
+        selectedModel = t2vList()[0].id;
+        selectedModelName = t2vList()[0].name;
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Describe the video you want to create';
@@ -224,37 +318,39 @@ export function VideoStudio() {
         const file = e.target.files[0];
         if (!file) return;
 
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) {
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) {
             AuthModal(() => videoFileInput.click());
             return;
         }
 
         showVideoSpinner();
         try {
-            const url = await kie.uploadFile(file);
+            const url = await muapi.uploadFile(file);
             uploadedVideoUrl = url;
             showVideoReady(file.name);
 
-            // Switch to v2v mode
-            if (imageMode) {
-                picker.reset();
-                uploadedImageUrl = null;
-                imageMode = false;
+            // If a motion-control v2v model is already selected, keep it and the image upload
+            if (isMotionControlV2V()) {
+                textarea.disabled = false;
+                textarea.placeholder = uploadedImageUrl
+                    ? (getCurrentModel()?.promptRequired ? 'Describe the motion' : 'Describe the motion (optional)')
+                    : 'Now upload a reference image using the 🖼 button';
+            } else {
+                // Default v2v flow (e.g. watermark remover) — auto-pick the first v2v model
+                if (imageMode) {
+                    picker.reset();
+                    uploadedImageUrl = null;
+                    imageMode = false;
+                }
+                v2vMode = true;
+                selectedModel = v2vModels[0].id;
+                selectedModelName = v2vModels[0].name;
+                document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateControlsForModel(selectedModel);
+                textarea.placeholder = 'Video ready — click Generate to remove watermark';
+                textarea.disabled = true;
             }
-            if (!v2vModels.length) {
-                showVideoIcon();
-                alert('Video-to-video is not available yet — no v2v models are in the registry.');
-                return;
-            }
-            v2vMode = true;
-            selectedModel = v2vModels[0].id;
-            selectedModelName = v2vModels[0].name;
-            document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateControlsForModel(selectedModel);
-            textarea.placeholder = 'Video ready — click Generate to remove watermark';
-            textarea.disabled = true;
         } catch (err) {
             console.error('[VideoStudio] Video upload failed:', err);
             showVideoIcon();
@@ -263,8 +359,7 @@ export function VideoStudio() {
         videoFileInput.value = '';
     };
 
-    // Video-to-video tools are not available on the current backend; hide the button until they are.
-    if (v2vModels.length > 0) topRow.appendChild(videoPickerBtn);
+    topRow.appendChild(videoPickerBtn);
 
     const textarea = document.createElement('textarea');
     textarea.placeholder = 'Describe the video you want to create';
@@ -278,11 +373,6 @@ export function VideoStudio() {
 
     topRow.appendChild(textarea);
     bar.appendChild(topRow);
-
-    // Shows what the look, camera and locks add to the prompt, so nothing is hidden.
-    const alsoSent = document.createElement('div');
-    alsoSent.className = 'hidden px-2 -mt-2 text-[10px] leading-relaxed text-muted';
-    bar.appendChild(alsoSent);
 
     // Extend mode banner (shown when extend model is active, not editable by user)
     const extendBanner = document.createElement('div');
@@ -298,7 +388,7 @@ export function VideoStudio() {
     bottomRow.className = 'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-2 pt-4 border-t border-white/5';
 
     const controlsLeft = document.createElement('div');
-    controlsLeft.className = 'flex flex-wrap items-center gap-1.5 md:gap-2.5 relative min-w-0 flex-1';
+    controlsLeft.className = 'flex items-center gap-1.5 md:gap-2.5 relative overflow-x-auto no-scrollbar pb-1 md:pb-0';
 
     const createControlBtn = (icon, label, id, tooltip) => {
         const btn = document.createElement('button');
@@ -339,16 +429,64 @@ export function VideoStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     `, selectedMode || 'normal', 'v-mode-btn');
 
+    const effectNameBtn = createControlBtn(`
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+    `, 'Effect', 'v-effect-btn', 'Select effect type');
+
+    // Local / API source toggle (only shown in Electron) — same pattern as Image Studio.
+    const refreshLocalAvailability = async () => {
+        try {
+            const models = await localAI.listModels();
+            localAvailability = new Map(models.filter(m => m.provider === 'wan2gp').map(m => [m.id, m]));
+        } catch (err) {
+            console.warn('[VideoStudio] Could not read Wan2GP status:', err);
+        }
+    };
+    if (isLocalAIAvailable()) {
+        const localToggleBtn = document.createElement('button');
+        localToggleBtn.id = 'v-local-toggle-btn';
+        const updateLocalToggleStyle = () => {
+            localToggleBtn.className = useLocalModel
+                ? 'flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all border text-xs font-bold whitespace-nowrap bg-primary/20 border-primary/40 text-primary'
+                : 'flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all border text-xs font-bold whitespace-nowrap bg-white/5 border-white/5 text-white/60 hover:bg-white/10';
+            localToggleBtn.textContent = useLocalModel ? t('image.local') : t('image.api');
+        };
+        updateLocalToggleStyle();
+        localToggleBtn.onclick = async (e) => {
+            e.stopPropagation();
+            useLocalModel = !useLocalModel;
+            updateLocalToggleStyle();
+            // Uploads and video tools belong to one source — start clean after switching.
+            if (v2vMode) {
+                v2vMode = false;
+                uploadedVideoUrl = null;
+                showVideoIcon();
+                textarea.disabled = false;
+            }
+            if (imageMode) {
+                picker.reset();
+                uploadedImageUrl = null;
+                imageMode = false;
+            }
+            videoPickerBtn.classList.toggle('hidden', useLocalModel);
+            if (useLocalModel) await refreshLocalAvailability();
+            const list = getCurrentModels();
+            const target = (useLocalModel && list.find(m => localAvailability.get(m.id)?.ready)) || list[0];
+            selectedModel = target.id;
+            selectedModelName = target.name;
+            document.getElementById('v-model-btn-label').textContent = selectedModelName;
+            updateControlsForModel(selectedModel);
+            textarea.placeholder = t('video.placeholder');
+        };
+        controlsLeft.appendChild(localToggleBtn);
+    }
+
     controlsLeft.appendChild(modelBtn);
-    controlsLeft.appendChild(durationBtn);
     controlsLeft.appendChild(arBtn);
+    controlsLeft.appendChild(durationBtn);
     controlsLeft.appendChild(resolutionBtn);
     controlsLeft.appendChild(qualityBtn);
-    
-    const cameraBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-    `, 'Camera: Auto', 'v-camera-btn', 'Choose a camera move');
-    controlsLeft.appendChild(cameraBtn);
+    controlsLeft.appendChild(effectNameBtn);
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
@@ -362,165 +500,74 @@ export function VideoStudio() {
     const initResolutions = getResolutionsForVideoModel(defaultModel.id);
     resolutionBtn.style.display = initResolutions.length > 0 ? 'flex' : 'none';
     qualityBtn.style.display = 'none';
-    modeBtn.style.display = getModesForModel(defaultModel.id).length > 0 ? 'flex' : 'none';
+    modeBtn.style.display = getCurrentModes(defaultModel.id).length > 0 ? 'flex' : 'none';
+    effectNameBtn.style.display = 'none';
 
     const generateBtn = document.createElement('button');
-    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg whitespace-nowrap shrink-0';
+    generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI video from prompt');
-    generateBtn.innerHTML = `Generate ✨`;
-
-    // Estimated cost of the next run, shown beside Generate.
-    const costEl = document.createElement('span');
-    costEl.className = 'hidden sm:inline text-[11px] font-bold text-secondary whitespace-nowrap self-center';
-    const refreshCost = () => {
-        if (v2vMode) { costEl.textContent = ''; return; }
-        const model = getCurrentModel();
-        let text = model ? costText(model, { duration: selectedDuration, resolution: selectedResolution }) : '';
-        const st = setup?.getState();
-        if (text && st?.sound === 'voiceover' && st.voice) {
-            text += st.voice.source === 'mine' ? ' + your ElevenLabs voice' : ` + ≈ ${voiceCredits(st.script.length || 150)} cr voice`;
-        }
-        costEl.textContent = text;
-    };
-    loadPricing().then(refreshCost);
-
-    const generateGroup = document.createElement('div');
-    generateGroup.className = 'flex items-center gap-3 w-full sm:w-auto shrink-0';
-    generateGroup.appendChild(costEl);
-    generateGroup.appendChild(generateBtn);
+    generateBtn.innerHTML = t('common.generate');
 
     bottomRow.appendChild(controlsLeft);
-    bottomRow.appendChild(generateGroup);
+    bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
-
-    // ==========================================
-    // 2b. ADVANCED PANEL
-    // ==========================================
-    const advancedPanel = document.createElement('div');
-    advancedPanel.id = 'v-advanced-panel';
-    advancedPanel.className = 'hidden flex-col gap-3 px-2 pt-4 border-t border-white/5';
-    bar.appendChild(advancedPanel);
-
-    const setAdvancedOpen = (open) => {
-        advancedOpen = open;
-        advancedPanel.classList.toggle('hidden', !open);
-        advancedPanel.classList.toggle('flex', open);
-        advancedBtn.classList.toggle('border-primary/40', open);
-        advancedBtn.classList.toggle('bg-white/10', open);
-        advancedBtn.setAttribute('data-tooltip', open ? 'Hide advanced options' : 'Show advanced options');
-        const chev = advancedBtn.querySelector('svg:last-child');
-        if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
-    };
-
-    const advancedValue = (f) => (advancedValues[f.key] !== undefined ? advancedValues[f.key] : f.default);
-
-    function renderAdvanced() {
-        const fields = v2vMode ? [] : advancedFieldsFor(selectedModel, imageMode);
-        advancedBtn.style.display = fields.length ? 'flex' : 'none';
-        if (!fields.length) { setAdvancedOpen(false); advancedPanel.innerHTML = ''; return; }
-
-        advancedPanel.innerHTML = '';
-        const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2.5';
-
-        fields.forEach(f => {
-            const row = document.createElement('div');
-            const isToggle = f.type === 'toggle';
-            row.className = `bg-white/5 border border-white/5 rounded-2xl px-4 py-3 ${isToggle ? 'flex items-center justify-between gap-4' : 'flex flex-col gap-2'} ${f.type === 'text' ? 'sm:col-span-2' : ''}`;
-            const head = document.createElement('div');
-            head.className = isToggle ? 'flex flex-col gap-0.5 min-w-0 flex-1' : 'flex items-center justify-between gap-3';
-            const title = document.createElement('span');
-            title.className = 'text-xs font-bold text-white';
-            title.textContent = f.label;
-            head.appendChild(title);
-            if (isToggle && f.hint) {
-                const hint = document.createElement('span');
-                hint.className = 'text-[10px] text-secondary opacity-70 leading-snug';
-                hint.textContent = f.hint;
-                head.appendChild(hint);
-            }
-            row.appendChild(head);
-
-            if (f.type === 'toggle') {
-                const sw = document.createElement('button');
-                sw.type = 'button';
-                const paint = () => {
-                    const on = !!advancedValue(f);
-                    sw.className = `relative w-10 h-6 shrink-0 rounded-full transition-colors ${on ? 'bg-primary' : 'bg-white/15'}`;
-                    sw.innerHTML = `<span class="absolute top-1 ${on ? 'left-5' : 'left-1'} w-4 h-4 rounded-full bg-white transition-all"></span>`;
-                    sw.setAttribute('aria-pressed', on ? 'true' : 'false');
-                };
-                sw.onclick = (e) => { e.preventDefault(); e.stopPropagation(); advancedValues[f.key] = !advancedValue(f); paint(); };
-                paint();
-                row.appendChild(sw);
-            } else if (f.type === 'select') {
-                const wrap = document.createElement('div');
-                wrap.className = 'flex flex-wrap gap-1.5';
-                const paint = () => {
-                    wrap.innerHTML = '';
-                    f.options.forEach(opt => {
-                        const b = document.createElement('button');
-                        b.type = 'button';
-                        const on = advancedValue(f) === opt;
-                        b.className = `px-3 py-1.5 rounded-xl text-[11px] font-bold capitalize transition-all border ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white/80 border-white/10 hover:border-primary/40'}`;
-                        b.textContent = opt;
-                        b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); advancedValues[f.key] = opt; paint(); };
-                        wrap.appendChild(b);
-                    });
-                };
-                paint();
-                row.appendChild(wrap);
-            } else {
-                const input = document.createElement(f.type === 'text' ? 'textarea' : 'input');
-                if (f.type === 'number') { input.type = 'number'; input.step = '1'; input.min = '0'; input.placeholder = 'Random'; }
-                else { input.rows = 2; input.placeholder = f.hint || ''; if (f.max) input.maxLength = f.max; }
-                input.className = 'w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-muted focus:outline-none focus:border-primary/50 resize-none';
-                input.value = advancedValue(f) ?? '';
-                input.onclick = (e) => e.stopPropagation();
-                input.oninput = () => { advancedValues[f.key] = input.value; };
-                row.appendChild(input);
-                if (f.type === 'number') {
-                    const dice = document.createElement('button');
-                    dice.type = 'button';
-                    dice.className = 'text-[10px] font-bold text-secondary hover:text-primary transition-colors';
-                    dice.textContent = '🎲 Random';
-                    dice.onclick = (e) => {
-                        e.preventDefault(); e.stopPropagation();
-                        input.value = String(Math.floor(Math.random() * 2147483647));
-                        advancedValues[f.key] = input.value;
-                    };
-                    head.appendChild(dice);
-                }
-            }
-
-            if (f.hint && f.type !== 'text' && !isToggle) {
-                const hint = document.createElement('span');
-                hint.className = 'text-[10px] text-secondary opacity-70 leading-snug';
-                hint.textContent = f.hint;
-                row.appendChild(hint);
-            }
-            grid.appendChild(row);
-        });
-
-        advancedPanel.appendChild(grid);
-
-        const reset = document.createElement('button');
-        reset.type = 'button';
-        reset.className = 'self-end text-[10px] font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors';
-        reset.textContent = 'Reset to defaults';
-        reset.onclick = (e) => { e.preventDefault(); e.stopPropagation(); advancedValues = {}; renderAdvanced(); };
-        advancedPanel.appendChild(reset);
-    }
-
-    advancedPanel.onclick = (e) => e.stopPropagation();
-    advancedBtn.onclick = (e) => {
-        e.stopPropagation();
-        closeDropdown();
-        setAdvancedOpen(!advancedOpen);
-    };
-    renderAdvanced();
     promptWrapper.appendChild(bar);
     container.appendChild(promptWrapper);
+
+    // Local generation progress + error panel (hidden until a local run starts)
+    const localPanel = document.createElement('div');
+    localPanel.id = 'v-local-panel';
+    localPanel.className = 'w-full max-w-4xl mt-4 hidden flex-col gap-2 relative z-30';
+    localPanel.innerHTML = `
+        <div class="v-local-progress flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-3">
+                <span class="v-local-label text-xs font-bold text-white/60 truncate">${t('video.localStarting')}</span>
+                <span class="v-local-pct text-xs font-bold text-primary shrink-0">0%</span>
+            </div>
+            <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="v-local-fill h-full bg-primary transition-all duration-300" style="width:0%"></div>
+            </div>
+            <div class="flex justify-end">
+                <button class="v-local-cancel text-xs text-red-400 hover:text-red-300 transition-colors">${t('common.cancel')}</button>
+            </div>
+        </div>
+        <div class="v-local-error hidden flex-col gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div class="flex items-center justify-between gap-3">
+                <span class="v-local-error-title text-xs font-bold text-red-300"></span>
+                <button class="v-local-error-close text-xs text-white/50 hover:text-white">✕</button>
+            </div>
+            <pre class="v-local-error-log text-[10px] leading-relaxed text-white/60 whitespace-pre-wrap break-words max-h-48 overflow-y-auto custom-scrollbar"></pre>
+        </div>
+    `;
+    container.appendChild(localPanel);
+    const localProgressEl = localPanel.querySelector('.v-local-progress');
+    const localErrorEl = localPanel.querySelector('.v-local-error');
+    const showLocalPanel = (part) => {
+        localPanel.classList.remove('hidden');
+        localPanel.classList.add('flex');
+        localProgressEl.classList.toggle('hidden', part !== 'progress');
+        localErrorEl.classList.toggle('hidden', part !== 'error');
+        localErrorEl.classList.toggle('flex', part === 'error');
+    };
+    const hideLocalPanel = () => {
+        localPanel.classList.add('hidden');
+        localPanel.classList.remove('flex');
+    };
+    const setLocalProgress = (event) => {
+        const pct = Math.round((event.progress ?? 0) * 100);
+        localPanel.querySelector('.v-local-label').textContent = localProgressLabel(event);
+        localPanel.querySelector('.v-local-pct').textContent = `${pct}%`;
+        localPanel.querySelector('.v-local-fill').style.width = `${pct}%`;
+    };
+    // First line is the reason; the rest (if any) is the Wan2GP log tail.
+    const showLocalError = (message) => {
+        const [title, ...rest] = String(message).replace(/^Error invoking remote method '[^']+': (Error: )?/, '').split('\n');
+        localPanel.querySelector('.v-local-error-title').textContent = title;
+        localPanel.querySelector('.v-local-error-log').textContent = rest.join('\n').trim();
+        showLocalPanel('error');
+    };
+    localPanel.querySelector('.v-local-cancel').onclick = () => localAI.cancelGeneration();
+    localPanel.querySelector('.v-local-error-close').onclick = hideLocalPanel;
 
     // ==========================================
     // 3. DROPDOWNS
@@ -528,12 +575,11 @@ export function VideoStudio() {
     const dropdown = document.createElement('div');
     dropdown.className = 'absolute bottom-[102%] left-2 z-50 transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
-    // keepSettings=true keeps the current AR/duration/resolution when the new model supports them.
-    const updateControlsForModel = (modelId, keepSettings = false) => {
+    const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
-        if (!keepSettings) advancedValues = {};
-        renderAdvanced();
-        setTimeout(refreshCost, 0);
+
+        // End-frame picker visibility depends on imageMode + model.lastImageField.
+        updateEndFrameVisibility();
 
         // In v2v mode, hide all parameter controls — no prompt/AR/duration/etc needed
         if (v2vMode) {
@@ -542,6 +588,7 @@ export function VideoStudio() {
             resolutionBtn.style.display = 'none';
             qualityBtn.style.display = 'none';
             modeBtn.style.display = 'none';
+            effectNameBtn.style.display = 'none';
             extendBanner.classList.add('hidden');
             extendBanner.classList.remove('flex');
             return;
@@ -550,10 +597,7 @@ export function VideoStudio() {
         // Aspect ratio
         const availableArs = getCurrentAspectRatios(modelId);
         if (availableArs.length > 0) {
-            if (!(keepSettings && availableArs.includes(selectedAr))) {
-                selectedAr = availableArs.includes(model?.inputs?.aspect_ratio?.default) ? model.inputs.aspect_ratio.default
-                    : (availableArs.includes('16:9') ? '16:9' : availableArs[0]);
-            }
+            selectedAr = availableArs[0];
             document.getElementById('v-ar-btn-label').textContent = selectedAr;
             arBtn.style.display = 'flex';
         } else {
@@ -563,10 +607,7 @@ export function VideoStudio() {
         // Duration
         const durations = getCurrentDurations(modelId);
         if (durations.length > 0) {
-            if (!(keepSettings && durations.includes(selectedDuration))) {
-                const d = model?.inputs?.duration?.default;
-                selectedDuration = durations.includes(d) ? d : durations[0];
-            }
+            selectedDuration = durations[0];
             document.getElementById('v-duration-btn-label').textContent = `${selectedDuration}s`;
             durationBtn.style.display = 'flex';
         } else {
@@ -576,10 +617,7 @@ export function VideoStudio() {
         // Resolution
         const resolutions = getCurrentResolutions(modelId);
         if (resolutions.length > 0) {
-            if (!(keepSettings && resolutions.includes(selectedResolution))) {
-                const r = model?.inputs?.resolution?.default;
-                selectedResolution = resolutions.includes(r) ? r : resolutions[0];
-            }
+            selectedResolution = resolutions[0];
             document.getElementById('v-resolution-btn-label').textContent = selectedResolution;
             resolutionBtn.style.display = 'flex';
         } else {
@@ -608,6 +646,17 @@ export function VideoStudio() {
             modeBtn.style.display = 'none';
         }
 
+        // Effect name (ai-video-effects / motion-controls)
+        const effectNames = getEffectNamesForModel(modelId);
+        if (effectNames.length > 0) {
+            selectedEffectName = model?.inputs?.name?.default || effectNames[0];
+            document.getElementById('v-effect-btn-label').textContent = selectedEffectName;
+            effectNameBtn.style.display = 'flex';
+        } else {
+            selectedEffectName = '';
+            effectNameBtn.style.display = 'none';
+        }
+
         // Extend banner (extend model only)
         if (model?.requiresRequestId) {
             extendBanner.classList.remove('hidden');
@@ -616,62 +665,6 @@ export function VideoStudio() {
             extendBanner.classList.add('hidden');
             extendBanner.classList.remove('flex');
         }
-    };
-
-    // One-line capability summary shown under each model name: durations, resolutions, aspect ratios.
-    const modelSummary = (m) => {
-        const bits = [];
-        const d = m.durations || [];
-        if (d.length) {
-            const consecutive = d.every((v, i) => i === 0 || v === d[i - 1] + 1);
-            bits.push(consecutive && d.length > 2 ? `${d[0]}–${d[d.length - 1]}s` : d.map(v => `${v}s`).join('/'));
-        }
-        if (m.resolutions?.length) bits.push(m.resolutions.join('/'));
-        if (m.aspects?.length) bits.push(`${m.aspects.length} ratios`);
-        return bits.join(' · ');
-    };
-
-    // Short description of the setup, e.g. "Realistic · Character + Item lock".
-    const setupSummary = () => {
-        const st = setup.getState();
-        const locks = [st.characterOn ? 'Character' : '', st.itemOn ? 'Item' : ''].filter(Boolean);
-        return [st.style === 'any' ? 'any look' : st.styleLabel, locks.length ? `${locks.join(' + ')} lock` : ''].filter(Boolean).join(' · ');
-    };
-
-    // What gets added to the typed prompt (History keeps only the typed text).
-    const extraPrompt = () => {
-        const st = setup.getState();
-        const voiceLine = st.sound === 'voiceover' ? 'The on-screen speaker says exactly the words in reference audio 1, in that voice, with natural lip sync.' : '';
-        return joinPrompt(selectedCamera.text, st.styleHint, st.locks ? lockInstruction(st.characters, st.items) : '', voiceLine);
-    };
-    const refreshAlsoSent = () => {
-        const extra = extraPrompt();
-        alsoSent.classList.toggle('hidden', !extra);
-        alsoSent.textContent = extra ? `Added to your prompt: ${extra}` : '';
-    };
-
-    // Keep the model, photo limit and hints in line with the setup panel.
-    const syncSetup = () => {
-        const st = setup.getState();
-        const fit = fitInfo(selectedModel);
-        setup.setLimit(st.locks && fit?.refs ? { max: fit.refs, model: selectedModelName } : null);
-        refreshAlsoSent();
-    };
-    const onSetupChange = () => {
-        const st = setup.getState();
-        picker.trigger.style.display = st.locks ? 'none' : '';
-        if (st.locks && imageMode) { picker.reset(); uploadedImageUrl = null; imageMode = false; }
-        if (!v2vMode) {
-            const best = pickBest(fitModels(getCurrentModels(), { style: st.style, locks: st.locks, refCount: st.refCount, sound: st.sound }), selectedModel);
-            if (best && best.id !== selectedModel) {
-                selectedModel = best.id;
-                selectedModelName = best.name;
-                document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            }
-            updateControlsForModel(selectedModel, true);
-        }
-        syncSetup();
-        refreshCost();
     };
 
     const showDropdown = (type, anchorBtn) => {
@@ -687,48 +680,62 @@ export function VideoStudio() {
                     <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
                         <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5 focus-within:border-primary/50 transition-colors">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                            <input type="text" id="v-model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
+                            <input type="text" id="v-model-search" placeholder="${t('common.searchModels')}" class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
                         </div>
                     </div>
-                    <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">Best models for ${esc(setupSummary())}</div>
+                    <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">${useLocalModel ? t('video.localModels') : 'Video models'}</div>
                     <div id="v-model-list-container" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
                 </div>
             `;
             const list = dropdown.querySelector('#v-model-list-container');
 
-            const makeModelItem = (m, isV2V = false, fitResult = null) => {
+            const makeModelItem = (m, isV2V = false) => {
                 const item = document.createElement('div');
-                item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
+                // Local Wan2GP models carry the engine's verdict; unavailable ones stay visible with the reason.
+                const local = m.provider === 'wan2gp' ? localAvailability.get(m.id) : null;
+                const unavailable = local && !local.ready;
+                item.className = `flex items-center justify-between p-3.5 rounded-2xl transition-all border border-transparent ${unavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5 cursor-pointer hover:border-white/5'} ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
                 const iconColor = isV2V ? 'bg-orange-500/10 text-orange-400' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400' : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400' : 'bg-primary/10 text-primary';
+                const localNote = unavailable
+                    ? `<span class="v-local-reason text-[9px] text-yellow-400/80 leading-snug">${escapeHtml(local.unavailableReason)}</span>`
+                    : local?.availabilityNote ? `<span class="text-[9px] text-muted leading-snug">${escapeHtml(local.availabilityNote)}</span>` : '';
                 item.innerHTML = `
-                    <div class="flex items-center gap-3.5">
-                         <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
-                         <div class="flex flex-col gap-0.5">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                         <div class="w-10 h-10 shrink-0 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.provider === 'wan2gp' ? '⚡' : m.name.charAt(0)}</div>
+                         <div class="flex flex-col gap-0.5 min-w-0">
                             <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
-                            ${isV2V ? '<span class="text-[9px] text-orange-400/70">Upload a video to use</span>' : `<span class="text-[10px] text-muted">${modelSummary(m)}</span>`}
-                            ${fitResult?.fit?.note ? `<span class="text-[10px] text-secondary">${esc(fitResult.fit.note)}</span>` : ''}
-                            ${fitResult?.overLimit ? `<span class="text-[10px] text-[#ff6b6b]">Takes up to ${fitResult.fit.refs} photos</span>` : ''}
+                            ${isV2V ? `<span class="text-[9px] text-orange-400/70">${m.imageField ? 'Upload a video and image' : 'Upload a video to use'}</span>` : ''}
+                            ${localNote}
                          </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        ${priceChipHtml(m, selectedResolution)}
-                        ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-                    </div>
+                    ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
+                    if (unavailable) return;
                     if (isV2V) {
                         // Switch to v2v mode
                         v2vMode = true;
                         imageMode = false;
-                        picker.reset();
-                        uploadedImageUrl = null;
+                        const isMC = !!m.imageField;
+                        if (!isMC) {
+                            // Single-input v2v (watermark remover etc.) — drop any image
+                            picker.reset();
+                            uploadedImageUrl = null;
+                        }
                         selectedModel = m.id;
                         selectedModelName = m.name;
                         document.getElementById('v-model-btn-label').textContent = selectedModelName;
                         updateControlsForModel(selectedModel);
-                        textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                        textarea.disabled = true;
+                        if (isMC) {
+                            textarea.placeholder = m.promptRequired
+                                ? 'Upload a reference video and image, then describe the motion'
+                                : 'Upload a reference video and image, then describe the motion (optional)';
+                            textarea.disabled = false;
+                        } else {
+                            textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                            textarea.disabled = true;
+                        }
                     } else {
                         // Leaving v2v mode if was in it
                         if (v2vMode) {
@@ -742,7 +749,6 @@ export function VideoStudio() {
                         document.getElementById('v-model-btn-label').textContent = selectedModelName;
                         updateControlsForModel(selectedModel);
                         textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
-                        syncSetup();
                     }
                     closeDropdown();
                 };
@@ -753,28 +759,18 @@ export function VideoStudio() {
                 list.innerHTML = '';
                 const lf = filter.toLowerCase();
 
-                // Only the models that suit the look and locks, best first.
-                const st = setup.getState();
-                const results = fitModels(v2vMode ? (imageMode ? i2vModels : t2vModels) : getCurrentModels(), { style: st.style, locks: st.locks, refCount: st.refCount, sound: st.sound })
-                    .filter(r => r.model.name.toLowerCase().includes(lf) || r.model.id.toLowerCase().includes(lf));
-                results.forEach(r => {
-                    const item = makeModelItem(r.model, false, r);
-                    if (r.overLimit) item.classList.add('opacity-50');
-                    list.appendChild(item);
-                });
-                if (!results.length) {
-                    const empty = document.createElement('div');
-                    empty.className = 'text-xs text-secondary p-3';
-                    empty.textContent = 'No model fits this look and lock. Try another look.';
-                    list.appendChild(empty);
-                }
+                // Regular generation models (always t2v or i2v, never v2v)
+                const generationModels = imageMode ? i2vList() : t2vList();
+                const filteredMain = generationModels
+                    .filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
+                filteredMain.forEach(m => list.appendChild(makeModelItem(m, false)));
 
-                // Video Tools section
-                const filteredV2V = sortByPriceDesc(v2vModels).filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
+                // Video Tools section (cloud-only)
+                const filteredV2V = useLocalModel ? [] : v2vModels.filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
                 if (filteredV2V.length > 0) {
                     const sectionLabel = document.createElement('div');
                     sectionLabel.className = 'text-[10px] font-bold text-orange-400/70 uppercase tracking-widest px-3 py-2 mt-1 border-t border-white/5';
-                    sectionLabel.textContent = 'Video Tools';
+                    sectionLabel.textContent = t('video.videoTools');
                     list.appendChild(sectionLabel);
                     filteredV2V.forEach(m => list.appendChild(makeModelItem(m, true)));
                 }
@@ -784,6 +780,10 @@ export function VideoStudio() {
             const searchInput = dropdown.querySelector('#v-model-search');
             searchInput.onclick = (e) => e.stopPropagation();
             searchInput.oninput = (e) => renderModels(e.target.value);
+            // Settings may have changed since the toggle — re-read Wan2GP availability.
+            if (useLocalModel) {
+                refreshLocalAvailability().then(() => { if (dropdownOpen === 'model') renderModels(searchInput.value); });
+            }
 
         } else if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
@@ -801,7 +801,7 @@ export function VideoStudio() {
                         </div>
                         <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 transition-opacity">${r}</span>
                     </div>
-                     ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedAr === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -824,7 +824,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${d}s</span>
-                     ${selectedDuration === d ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedDuration === d ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -846,7 +846,7 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 capitalize">${q}</span>
-                    ${selectedQuality === q ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedQuality === q ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
@@ -869,34 +869,12 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${r}</span>
-                     ${selectedResolution === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                     ${selectedResolution === r ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
                     selectedResolution = r;
                     document.getElementById('v-resolution-btn-label').textContent = r;
-                    closeDropdown();
-                };
-                list.appendChild(item);
-            });
-            dropdown.appendChild(list);
-
-        } else if (type === 'camera') {
-            dropdown.classList.add('max-w-[240px]');
-            dropdown.innerHTML = `<div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Camera move</div>`;
-            const list = document.createElement('div');
-            list.className = 'flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1';
-            CAMERA_PRESETS.forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
-                item.title = c.text || 'Let the model choose the camera';
-                item.innerHTML = `<span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100"></span>${selectedCamera.id === c.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}`;
-                item.firstElementChild.textContent = c.label;
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedCamera = c;
-                    document.getElementById('v-camera-btn-label').textContent = `Camera: ${c.label}`;
-                    refreshAlsoSent();
                     closeDropdown();
                 };
                 list.appendChild(item);
@@ -913,12 +891,35 @@ export function VideoStudio() {
                 item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
                 item.innerHTML = `
                     <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100 capitalize">${m}</span>
-                    ${selectedMode === m ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2d2d" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    ${selectedMode === m ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
                 `;
                 item.onclick = (e) => {
                     e.stopPropagation();
                     selectedMode = m;
                     document.getElementById('v-mode-btn-label').textContent = m;
+                    closeDropdown();
+                };
+                list.appendChild(item);
+            });
+            dropdown.appendChild(list);
+
+        } else if (type === 'effect') {
+            dropdown.classList.add('max-w-[240px]');
+            dropdown.classList.remove('max-w-[200px]');
+            dropdown.innerHTML = `<div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Effect Type</div>`;
+            const list = document.createElement('div');
+            list.className = 'flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar';
+            getEffectNamesForModel(selectedModel).forEach(e => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
+                item.innerHTML = `
+                    <span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100">${e}</span>
+                    ${selectedEffectName === e ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                `;
+                item.onclick = (ev) => {
+                    ev.stopPropagation();
+                    selectedEffectName = e;
+                    document.getElementById('v-effect-btn-label').textContent = e;
                     closeDropdown();
                 };
                 list.appendChild(item);
@@ -940,7 +941,6 @@ export function VideoStudio() {
     };
 
     const closeDropdown = () => {
-        refreshCost();
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
@@ -958,7 +958,7 @@ export function VideoStudio() {
     resolutionBtn.onclick = toggleDropdown('resolution', resolutionBtn);
     qualityBtn.onclick = toggleDropdown('quality', qualityBtn);
     modeBtn.onclick = toggleDropdown('mode', modeBtn);
-    cameraBtn.onclick = toggleDropdown('camera', cameraBtn);
+    effectNameBtn.onclick = toggleDropdown('effect', effectNameBtn);
 
     window.addEventListener('click', closeDropdown);
     container.appendChild(dropdown);
@@ -974,7 +974,7 @@ export function VideoStudio() {
 
     const historyLabel = document.createElement('div');
     historyLabel.className = 'text-[9px] font-bold text-muted uppercase tracking-widest mb-2';
-    historyLabel.textContent = 'History';
+    historyLabel.textContent = t('video.history');
     historySidebar.appendChild(historyLabel);
 
     const historyList = document.createElement('div');
@@ -1004,20 +1004,20 @@ export function VideoStudio() {
 
     const regenerateBtn = document.createElement('button');
     regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    regenerateBtn.textContent = '↻ Regenerate';
+    regenerateBtn.textContent = t('video.regenerate');
 
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
+    downloadBtn.textContent = t('video.download');
 
     const extendBtn = document.createElement('button');
     extendBtn.className = 'hidden bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-primary/30 text-primary backdrop-blur-lg';
-    extendBtn.textContent = '↗ Extend';
+    extendBtn.textContent = t('video.extend');
     extendBtn.title = 'Extend this video using Seedance 2.0 Extend';
 
     const newPromptBtn = document.createElement('button');
     newPromptBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-    newPromptBtn.textContent = '+ New';
+    newPromptBtn.textContent = t('video.new');
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(extendBtn);
@@ -1046,42 +1046,23 @@ export function VideoStudio() {
         };
     };
 
-    // --- Helper: Short error banner (used by background jobs) ---
-    const flashBanner = (text, isError = true) => {
-        const el = document.createElement('div');
-        el.className = `fixed top-20 left-1/2 pointer-events-none -translate-x-1/2 z-[200] bg-[#111] border ${isError ? 'border-red-500/40' : 'border-primary/40'} text-white text-sm px-5 py-3 rounded-2xl shadow-xl`;
-        el.textContent = text;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 5000);
-    };
-
-    // --- History (pending cards are inserted the moment Generate is clicked) ---
-    const revealHistory = () => {
+    // --- Helper: Add to history ---
+    const addToHistory = (entry) => {
+        generationHistory.unshift(entry);
+        localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 30)));
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
         historySidebar.classList.add('translate-x-0', 'opacity-100');
+        renderHistory();
     };
-    const queueHistory = createQueueHistory({
-        history: generationHistory, storageKey: 'video_history', limit: 30,
-        render: () => renderHistory(), reveal: revealHistory,
-    });
-    const addToHistory = (entry) => queueHistory.resolve(null, entry);
 
     const renderHistory = () => {
         historyList.innerHTML = '';
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
-            thumb.className = `relative group/thumb ${entry.pending ? '' : 'cursor-pointer'} rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;
-
-            if (entry.pending) {
-                thumb.title = entry.prompt ? `Generating: ${entry.prompt.slice(0, 80)}` : 'Generating…';
-                thumb.innerHTML = pendingThumbHtml(entry);
-                historyList.appendChild(thumb);
-                return;
-            }
+            thumb.className = `relative group/thumb cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;
 
             thumb.innerHTML = `
                 <video src="${entry.url}" preload="metadata" muted class="w-full aspect-square object-cover"></video>
-                ${creditBadgeHtml(entry)}
                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1">
                     <button class="hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform" title="Download">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -1149,30 +1130,25 @@ export function VideoStudio() {
         const pending = getPendingJobs('video');
         if (!pending.length) return;
 
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !localStorage.getItem('cf_backend')) return; // can't poll without key; jobs remain for next time
+        const apiKey = localStorage.getItem('muapi_key');
+        if (!apiKey) return; // can't poll without key; jobs remain for next time
 
         const banner = document.createElement('div');
-        banner.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 pointer-events-none';
+        banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] bg-[#111] border border-white/10 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3';
         banner.innerHTML = `<span class="animate-spin text-primary">◌</span> <span class="banner-text">Resuming ${pending.length} pending generation${pending.length > 1 ? 's' : ''}…</span>`;
         document.body.appendChild(banner);
-        // Brief notice only; the Queued cards in History show progress from here on.
-        setTimeout(() => banner.remove(), 4000);
 
         let remaining = pending.length;
         pending.forEach(async (job) => {
-            const tempId = queueHistory.addPending({ ...job.historyMeta });
             const elapsedAttempts = Math.floor((Date.now() - job.submittedAt) / job.interval);
             const attemptsLeft = Math.max(1, job.maxAttempts - elapsedAttempts);
             try {
-                const result = await kie.pollForResult(job.requestId, apiKey, attemptsLeft, job.interval);
+                const result = await muapi.pollForResult(job.requestId, apiKey, attemptsLeft, job.interval);
                 const url = result.outputs?.[0] || result.url || result.output?.url;
                 if (url) {
-                    queueHistory.resolve(tempId, { id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
-                } else queueHistory.fail(tempId);
+                    addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+                }
             } catch (e) {
-                queueHistory.fail(tempId);
                 console.warn('[VideoStudio] Pending job failed on resume:', job.requestId, e.message);
             } finally {
                 removePendingJob(job.requestId);
@@ -1192,32 +1168,7 @@ export function VideoStudio() {
         }
     };
 
-    regenerateBtn.onclick = () => {
-        // Inputs are cleared after every Generate, so restore the viewed clip's settings first.
-        const entry = generationHistory.find(e => e.url === resultVideo.src);
-        resetToPromptBar();
-        if (entry) {
-            textarea.value = entry.prompt || '';
-            if (!imageMode && !v2vMode) {
-                const m = t2vModels.find(x => x.id === entry.model);
-                if (m) {
-                    selectedModel = m.id; selectedModelName = m.name;
-                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                    updateControlsForModel(selectedModel);
-                    if (entry.aspect_ratio && getCurrentAspectRatios(m.id).includes(entry.aspect_ratio)) {
-                        selectedAr = entry.aspect_ratio;
-                        document.getElementById('v-ar-btn-label').textContent = selectedAr;
-                    }
-                    if (entry.duration && getCurrentDurations(m.id).includes(entry.duration)) {
-                        selectedDuration = entry.duration;
-                        document.getElementById('v-duration-btn-label').textContent = `${selectedDuration}s`;
-                    }
-                    refreshCost();
-                }
-            }
-        }
-        generateBtn.click();
-    };
+    regenerateBtn.onclick = () => generateBtn.click();
 
     const resetToPromptBar = () => {
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
@@ -1237,7 +1188,9 @@ export function VideoStudio() {
         uploadedVideoUrl = null;
         v2vMode = false;
         showVideoIcon();
-        { const first = bestOf(t2vModels); selectedModel = first.id; selectedModelName = first.name; }
+        hideLocalPanel();
+        selectedModel = t2vList()[0].id;
+        selectedModelName = t2vList()[0].name;
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Describe the video you want to create';
@@ -1260,31 +1213,6 @@ export function VideoStudio() {
         textarea.focus();
     };
 
-    // Clear uploads and prompt-driven state after a submit. The chosen model and
-    // settings stay, so a batch of similar clips is quick; image-only models fall
-    // back to the first text-to-video model because there is no image any more.
-    const resetInputs = () => {
-        picker.reset();
-        uploadedImageUrl = null;
-        if (v2vMode) {
-            uploadedVideoUrl = null;
-            v2vMode = false;
-            showVideoIcon();
-            textarea.disabled = false;
-        }
-        if (imageMode) {
-            imageMode = false;
-            const keep = t2vModels.find(m => m.id === selectedModel);
-            const next = keep || bestOf(t2vModels, selectedModel);
-            selectedModel = next.id;
-            selectedModelName = next.name;
-            document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateControlsForModel(selectedModel, !!keep);
-        }
-        textarea.placeholder = 'Describe the video you want to create';
-        refreshCost();
-    };
-
     // ==========================================
     // 5. GENERATION LOGIC
     // ==========================================
@@ -1298,6 +1226,14 @@ export function VideoStudio() {
                 alert('Please upload a video first.');
                 return;
             }
+            if (model?.imageField && !uploadedImageUrl) {
+                alert('Please upload a reference image for motion control.');
+                return;
+            }
+            if (model?.promptRequired && !prompt) {
+                alert('Please describe the motion you want.');
+                return;
+            }
         } else if (isExtendMode) {
             if (!lastGenerationId) {
                 alert('No Seedance 2.0 generation found to extend. Generate a video first.');
@@ -1308,10 +1244,6 @@ export function VideoStudio() {
                 alert('Please upload a start frame image first.');
                 return;
             }
-            if (!prompt) {
-                alert('Please describe the motion — this model needs a prompt even with an image.');
-                return;
-            }
         } else {
             if (!prompt) {
                 alert('Please enter a prompt to generate a video.');
@@ -1319,212 +1251,215 @@ export function VideoStudio() {
             }
         }
 
-        const lockState = setup.getState();
-        if (!v2vMode && lockState.sound === 'voiceover') {
-            if (!localStorage.getItem('cf_backend')) { alert('Voiceover needs you signed in to your account.'); return; }
-            if (!lockState.voice) { alert('Pick a voice for the voiceover.'); return; }
-            if (!lockState.script) { alert('Write what the voiceover should say.'); return; }
-            if (voiceSeconds(lockState.script.length) > 15) { alert('The voiceover is longer than 15 seconds. Shorten the script.'); return; }
-            if (!fitInfo(selectedModel)?.voice) { alert(`${selectedModelName} cannot use a voiceover. Pick Seedance 2.0.`); return; }
-        }
-        if (!v2vMode && lockState.locks) {
-            if (lockState.uploading) { alert('Photos are still uploading — one moment.'); return; }
-            if (!lockState.refCount) { alert('Add at least one photo to the character/item lock, or turn the lock off.'); return; }
-            const fit = fitInfo(selectedModel);
-            if (!fit?.refs) { alert(`${selectedModelName} cannot use reference photos. Pick another model.`); return; }
-            if (lockState.refCount > fit.refs) { alert(`${selectedModelName} keeps up to ${fit.refs} photos. Remove some or pick another model.`); return; }
-        }
+        const isLocal = useLocalModel && isWan2gpModelId(selectedModel);
 
-        const apiKey = localStorage.getItem('kie_key');
-        const cfLogged = !!localStorage.getItem('cf_backend');
-        if (!apiKey && !cfLogged) {
-            AuthModal(() => generateBtn.click());
-            return;
+        // Local Wan2GP generations don't go through Muapi — skip the auth gate,
+        // but refuse models the engine reported as unavailable.
+        if (isLocal) {
+            if (!localAvailability.size) await refreshLocalAvailability();
+            const status = localAvailability.get(selectedModel);
+            if (status && !status.ready) {
+                showLocalError(status.unavailableReason);
+                return;
+            }
+        } else {
+            const apiKey = localStorage.getItem('muapi_key');
+            if (!apiKey) {
+                AuthModal(() => generateBtn.click());
+                return;
+            }
         }
 
-        // Snapshot everything this run needs, then clear the form so the next
-        // prompt can be started immediately while this one generates.
-        const submittedModel = selectedModel;
-        const submittedAr = selectedAr;
-        const submittedDuration = selectedDuration;
-        const submittedResolution = selectedResolution;
-        const submittedAdvanced = { ...advancedValues };
-        // Sound step: silent turns model audio off; a voiceover keeps it on so the speech is heard.
-        const soundState = setup.getState();
-        if (soundState.sound === 'silent') { submittedAdvanced.generate_audio = false; submittedAdvanced.sound = false; }
-        if (soundState.sound === 'voiceover') submittedAdvanced.generate_audio = true;
-        const submittedVoice = soundState.sound === 'voiceover' && soundState.voice
-            ? { id: soundState.voice.id, name: soundState.voice.name, source: soundState.voice.source, script: soundState.script }
-            : null;
-        const submittedVoiceCredits = submittedVoice && submittedVoice.source === 'preset' ? voiceCredits(submittedVoice.script.length) : 0;
-        // The chosen camera move is added to what the model receives (History keeps the typed prompt).
-        const setupState = setup.getState();
-        const promptForModel = joinPrompt(prompt, extraPrompt());
-        const submittedRefs = setupState.locks ? setupState.refs.slice() : [];
-        const submittedImageMode = imageMode;
-        const submittedV2V = v2vMode;
-        const submittedImageUrl = uploadedImageUrl;
-        const submittedVideoUrl = uploadedVideoUrl;
-        const submittedRequestId = lastGenerationId;
-        const cost = model ? costMeta(model, { duration: submittedDuration, resolution: submittedResolution }) : {};
-        const historyMeta = submittedV2V
-            ? { prompt: '', model: submittedModel, ...cost }
-            : { prompt, model: submittedModel, aspect_ratio: submittedAr, duration: submittedDuration, ...cost,
-                ...(submittedVoice ? { voice: submittedVoice.name, credits: cost.credits != null ? Math.round((cost.credits + submittedVoiceCredits) * 10) / 10 : cost.credits } : {}) };
-        let queuedId = null;
+        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> ${t('common.generating')}`;
 
-        const tempId = queueHistory.addPending(historyMeta);
-        textarea.value = '';
-        textarea.style.height = 'auto';
-        resetInputs();
-
-        // Makes the voiceover first (when chosen) and returns what the video request needs.
-        const prepareVoice = async () => {
-            if (!submittedVoice) return null;
-            const url = await makeVoiceover({ text: submittedVoice.script, voiceId: submittedVoice.id, source: submittedVoice.source });
-            const secs = await new Promise((resolve) => {
-                const a = new Audio();
-                a.preload = 'metadata';
-                a.onloadedmetadata = () => resolve(a.duration || 0);
-                a.onerror = () => resolve(0);
-                a.src = url;
+        // Local generations stream phase/step progress into the panel and the button.
+        let unsubscribeProgress = null;
+        if (isLocal) {
+            setLocalProgress({ status: 'starting', progress: 0 });
+            showLocalPanel('progress');
+            unsubscribeProgress = localAI.onProgress((event) => {
+                setLocalProgress(event);
+                generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> ${localProgressLabel(event)}`;
             });
-            if (secs > 15) throw new Error(`The voiceover is ${Math.round(secs)}s; 15s is the most one clip can take. Shorten the script.`);
-            return {
-                url,
-                secs,
-                meta: { name: submittedVoice.name, provider: submittedVoice.source === 'mine' ? 'elevenlabs' : 'kie', chars: submittedVoice.script.length, credits: submittedVoiceCredits },
-            };
-        };
-        const withVoice = (p, voice) => {
-            if (!voice) return p;
-            p.reference_audio_urls = [voice.url];
-            p.voice = voice.meta;
-            // The clip must be at least as long as the speech.
-            if (p.duration && voice.secs) p.duration = Math.min(15, Math.max(Number(p.duration), Math.ceil(voice.secs + 0.5)));
-            return p;
+        }
+
+        let hadError = false;
+        let capturedRequestId = null;
+        const historyMeta = { prompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration };
+
+        const onRequestId = (rid) => {
+            capturedRequestId = rid;
+            savePendingJob({ requestId: rid, studioType: 'video', historyMeta, maxAttempts: 900, interval: 2000, submittedAt: Date.now() });
         };
 
-        const runJob = async (queueRequest) => {
-            const onRequestId = (rid) => {
-                queuedId = rid;
-                queueRequest(rid);
-            };
-            const voice = submittedV2V ? null : await prepareVoice();
-
-            if (submittedV2V) {
-                return kie.processV2V({ model: submittedModel, video_url: submittedVideoUrl, onRequestId });
+        try {
+            // ─── Local Wan2GP path ───────────────────────────────────────────
+            // Start frames were saved on disk by uploadFileToWan2gp(); the
+            // provider passes that path to Wan2GP (or uploads it to a remote one).
+            if (isLocal) {
+                const localParams = {
+                    model: selectedModel,
+                    prompt: prompt || '',
+                    aspect_ratio: selectedAr,
+                };
+                if (imageMode && uploadedImageUrl) localParams.image = uploadedImageUrl;
+                const res = await localAI.generate(localParams);
+                console.log('[VideoStudio] Local response:', res);
+                hideLocalPanel();
+                if (res && res.url) {
+                    const genId = Date.now().toString();
+                    lastGenerationId = null;
+                    lastGenerationModel = null;
+                    addToHistory({ id: genId, url: res.url, prompt, model: selectedModel, aspect_ratio: selectedAr, seed: res.seed, timestamp: new Date().toISOString() });
+                    showVideoInCanvas(res.url, selectedModel);
+                } else {
+                    throw new Error('No video URL returned by Wan2GP');
+                }
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = t('common.generate');
+                return;
             }
 
-            if (submittedImageMode) {
+            if (v2vMode) {
+                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, onRequestId };
+                if (model?.imageField && uploadedImageUrl) v2vParams.image_url = uploadedImageUrl;
+                if (model?.hasPrompt && prompt) v2vParams.prompt = prompt;
+                const res = await muapi.processV2V(v2vParams);
+                console.log('[VideoStudio] V2V response:', res);
+                if (res && res.url) {
+                    if (capturedRequestId) removePendingJob(capturedRequestId);
+                    const genId = res.id || capturedRequestId || Date.now().toString();
+                    lastGenerationId = null;
+                    lastGenerationModel = null;
+                    addToHistory({ id: genId, url: res.url, prompt: model?.hasPrompt ? prompt : '', model: selectedModel, timestamp: new Date().toISOString() });
+                    showVideoInCanvas(res.url, selectedModel);
+                } else {
+                    throw new Error('No video URL returned by API');
+                }
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = t('common.generate');
+                return;
+            }
+
+            if (imageMode) {
                 const i2vParams = {
-                    model: submittedModel,
-                    image_url: submittedImageUrl,
+                    model: selectedModel,
+                    image_url: uploadedImageUrl,
                     onRequestId,
                 };
-                if (promptForModel) i2vParams.prompt = promptForModel;
-                i2vParams.aspect_ratio = submittedAr;
-                const durations = getCurrentDurations(submittedModel);
-                if (durations.length > 0) i2vParams.duration = submittedDuration;
-                const resolutions = getCurrentResolutions(submittedModel);
-                if (resolutions.length > 0) i2vParams.resolution = submittedResolution;
-                i2vParams.advanced = submittedAdvanced;
-                if (cost.credits) i2vParams.estimatedCredits = cost.credits;
-                return kie.generateI2V(withVoice(i2vParams, voice));
+                i2vParams.prompt = prompt || '';
+                i2vParams.aspect_ratio = selectedAr;
+                if (uploadedEndImageUrl && getCurrentModel()?.lastImageField) {
+                    i2vParams.last_image = uploadedEndImageUrl;
+                }
+                const durations = getCurrentDurations(selectedModel);
+                if (durations.length > 0) i2vParams.duration = selectedDuration;
+                const resolutions = getCurrentResolutions(selectedModel);
+                if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
+                if (selectedQuality) i2vParams.quality = selectedQuality;
+                if (selectedMode) i2vParams.mode = selectedMode;
+                if (selectedEffectName) i2vParams.name = selectedEffectName;
+
+                const res = await muapi.generateI2V(i2vParams);
+                console.log('[VideoStudio] I2V response:', res);
+
+                if (res && res.url) {
+                    if (capturedRequestId) removePendingJob(capturedRequestId);
+                    const genId = res.id || capturedRequestId || Date.now().toString();
+                    if (selectedModel === 'seedance-v2.0-i2v') {
+                        lastGenerationId = genId;
+                        lastGenerationModel = selectedModel;
+                    } else {
+                        lastGenerationId = null;
+                        lastGenerationModel = null;
+                    }
+                    addToHistory({ id: genId, url: res.url, prompt, model: selectedModel, aspect_ratio: selectedAr, duration: selectedDuration, timestamp: new Date().toISOString() });
+                    showVideoInCanvas(res.url, selectedModel);
+                } else {
+                    throw new Error('No video URL returned by API');
+                }
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = t('common.generate');
+                return;
             }
 
-            const params = { model: submittedModel, onRequestId };
-            if (submittedRefs.length) params.reference_urls = submittedRefs;
+            const params = { model: selectedModel, onRequestId };
 
-            if (promptForModel) params.prompt = promptForModel;
+            if (prompt) params.prompt = prompt;
 
             // Extend mode: pass stored request_id, skip aspect_ratio
             if (isExtendMode) {
-                params.request_id = submittedRequestId;
+                params.request_id = lastGenerationId;
             } else {
-                params.aspect_ratio = submittedAr;
+                params.aspect_ratio = selectedAr;
             }
 
-            const durations = getCurrentDurations(submittedModel);
-            if (durations.length > 0) params.duration = submittedDuration;
+            const durations = getCurrentDurations(selectedModel);
+            if (durations.length > 0) params.duration = selectedDuration;
 
-            const resolutions = getCurrentResolutions(submittedModel);
-            if (resolutions.length > 0) params.resolution = submittedResolution;
-            params.advanced = submittedAdvanced;
-            if (cost.credits) params.estimatedCredits = cost.credits;
+            const resolutions = getCurrentResolutions(selectedModel);
+            if (resolutions.length > 0) params.resolution = selectedResolution;
 
-            return kie.generateVideo(withVoice(params, voice));
-        };
+            if (selectedQuality) params.quality = selectedQuality;
+            if (selectedMode) params.mode = selectedMode;
 
-        const onDone = (res) => {
+            const res = await muapi.generateVideo(params);
+
             console.log('[VideoStudio] Full response:', res);
-            if (!res?.url) {
+
+            if (res && res.url) {
+                if (capturedRequestId) removePendingJob(capturedRequestId);
+                const genId = res.id || capturedRequestId || Date.now().toString();
+                // Store request_id for seedance-v2.0 models (enables Extend button)
+                if (selectedModel === 'seedance-v2.0-t2v' || selectedModel === 'seedance-v2.0-i2v') {
+                    lastGenerationId = genId;
+                    lastGenerationModel = selectedModel;
+                } else {
+                    lastGenerationId = null;
+                    lastGenerationModel = null;
+                }
+
+                addToHistory({
+                    id: genId,
+                    url: res.url,
+                    prompt,
+                    model: selectedModel,
+                    aspect_ratio: selectedAr,
+                    duration: selectedDuration,
+                    timestamp: new Date().toISOString()
+                });
+                showVideoInCanvas(res.url, selectedModel);
+            } else {
                 console.error('[VideoStudio] No video URL in response:', res);
-                queueHistory.fail(tempId);
-                flashBanner('Video failed: no video URL returned by API');
-                return;
+                throw new Error('No video URL returned by API');
             }
-            const genId = res.id || queuedId || Date.now().toString();
-            // Keep the request id for seedance-v2.0 models so the Extend button works
-            const keepForExtend = !submittedV2V && (submittedModel === 'seedance-v2.0-t2v' || submittedModel === 'seedance-v2.0-i2v');
-            lastGenerationId = keepForExtend ? genId : null;
-            lastGenerationModel = keepForExtend ? submittedModel : null;
-
-            queueHistory.resolve(tempId, { id: genId, url: res.url, ...historyMeta, timestamp: new Date().toISOString() });
-            flashBanner('Video ready — open it from History on the right', false);
-        };
-
-        // Not awaited: the studio stays usable while the job is queued and polled.
-        startGenerationJob(
-            { studioType: 'video', historyMeta, maxAttempts: 900, interval: 2000 },
-            runJob,
-            {
-                onDone,
-                onFail: (e) => {
-                    console.error('[VideoStudio] Generation failed:', e);
-                    queueHistory.fail(tempId);
-                    flashBanner(`Video failed: ${e.message.slice(0, 80)}`);
-                },
+        } catch (e) {
+            hadError = true;
+            if (capturedRequestId) removePendingJob(capturedRequestId);
+            console.error(e);
+            // Restore hero so the page doesn't look broken after a failed generation
+            hero.classList.remove('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+            const cancelled = isLocal && /Generation cancelled/.test(e.message);
+            if (isLocal) {
+                // Local errors carry the Wan2GP log tail — show all of it, not a 60-char button label.
+                if (cancelled) hideLocalPanel();
+                else showLocalError(e.message);
             }
-        ).catch((e) => {
-            console.error('[VideoStudio] Could not queue generation:', e);
-            queueHistory.fail(tempId);
-            flashBanner(`Could not start video: ${e.message.slice(0, 80)}`);
-        });
-    };
-
-    // Opened from the Library: animate an image, or redo a past clip's settings.
-    const handoff = takeHandoff('video');
-    if (handoff) setTimeout(() => {
-        if (handoff.mode === 'animate' && handoff.imageUrl) {
-            picker.setImage(handoff.imageUrl, handoff.thumb);
-            textarea.placeholder = 'Describe the motion or what happens in the video';
-        } else if (handoff.mode === 'redo') {
-            textarea.value = handoff.prompt || '';
-            textarea.oninput?.();
-            const m = getCurrentModels().find(x => x.id === handoff.model) || lockPool().find(x => x.id === handoff.model);
-            if (m && getCurrentModels().includes(m)) {
-                selectedModel = m.id; selectedModelName = m.name;
-                document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                updateControlsForModel(selectedModel);
-                if (handoff.aspect && getCurrentAspectRatios(m.id).includes(handoff.aspect)) {
-                    selectedAr = handoff.aspect;
-                    document.getElementById('v-ar-btn-label').textContent = selectedAr;
-                }
-                const d = Number(handoff.duration);
-                if (d && getCurrentDurations(m.id).includes(d)) {
-                    selectedDuration = d;
-                    document.getElementById('v-duration-btn-label').textContent = `${d}s`;
-                }
-                if (handoff.resolution && getCurrentResolutions(m.id).includes(handoff.resolution)) {
-                    selectedResolution = handoff.resolution;
-                    document.getElementById('v-resolution-btn-label').textContent = selectedResolution;
-                }
-                refreshCost();
-            }
+            generateBtn.innerHTML = cancelled ? t('video.localCancelled')
+                : isLocal ? t('video.localFailed')
+                : `Error: ${e.message.slice(0, 60)}`;
+            setTimeout(() => {
+                generateBtn.innerHTML = t('common.generate');
+            }, 4000);
+        } finally {
+            generateBtn.disabled = false;
+            if (typeof unsubscribeProgress === 'function') unsubscribeProgress();
+            // Only reset the label on success; the catch timeout handles the error case
+            if (!hadError) generateBtn.innerHTML = t('common.generate');
         }
-        textarea.focus();
-    }, 50);
+    };
 
     return container;
 }
