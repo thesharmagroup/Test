@@ -81,8 +81,9 @@ export default function StandaloneShell() {
         </button>
       </header>
 
-      {/* Studio Content */}
-      <div className="flex-1">
+      {/* Studio Content — the transform keeps the studios' fixed panels (e.g. History)
+          inside this area so they don't cover the header's Settings button. */}
+      <div className="flex-1 min-h-0 relative [transform:translateZ(0)]">
         {activeTab === 'image'   && <ImageStudio   apiKey={apiKey} />}
         {activeTab === 'video'   && <VideoStudio   apiKey={apiKey} />}
         {activeTab === 'lipsync' && <LipSyncStudio apiKey={apiKey} />}

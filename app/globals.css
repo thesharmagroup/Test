@@ -1,8 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* The studio components live in a workspace package, so scan it explicitly. */
+@source "../packages/studio/src";
+
+/* Same palette as packages/studio/tailwind.config.js */
+@theme {
+  --color-app-bg: #050505;
+  --color-panel-bg: #0a0a0a;
+  --color-card-bg: #111111;
+  --color-primary: #d9ff00;
+  --color-secondary: #a1a1aa;
+  --color-muted: #52525b;
+}
 
 body {
   background: #050505;
