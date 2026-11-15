@@ -36,8 +36,13 @@ export const beats = (bpm: number) => {
   return { B, at: (beat: number) => Math.round(beat * B) };
 };
 
+/** Which media folder to read from: the 1080p proxies (default) or the full-resolution set for 4K renders. */
+export const MediaRoot = React.createContext<string>(P);
+
 /** A photo or video filling its box. */
-export const Media: React.FC<{ src: string; trimStart?: number; style?: React.CSSProperties }> = ({ src, trimStart = 0, style }) => {
+export const Media: React.FC<{ src: string; trimStart?: number; style?: React.CSSProperties }> = ({ src: raw, trimStart = 0, style }) => {
+  const root = React.useContext(MediaRoot);
+  const src = raw.startsWith(P) ? root + raw.slice(P.length) : raw;
   const fill: React.CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block", ...style };
   return isVideo(src) ? <OffthreadVideo src={staticFile(src)} muted startFrom={Math.round(trimStart * FPS)} style={fill} /> : <Img src={staticFile(src)} style={fill} />;
 };

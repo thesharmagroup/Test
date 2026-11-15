@@ -7,7 +7,7 @@ import { brand as myBrand } from "../../brand";
 import { FONTS } from "../../fonts";
 import { Music, ReelFrame, SfxTrack, type ReelProps, type SfxCue } from "../../components";
 import { SAFE, SAFE_BOX } from "../../layout";
-import { Grain, MEDIA, Media, beats, rand, type MediaKey } from "../stjohns-trip/shared";
+import { Grain, MEDIA, Media, MediaRoot, beats, rand, type MediaKey } from "../stjohns-trip/shared";
 
 const { B, at } = beats(128);
 const INTRO = 8;
@@ -213,3 +213,10 @@ const FadeOut: React.FC = () => {
 
 // keep B referenced for readers tuning the timing: one beat = B frames
 export const FRAMES_PER_BEAT = B;
+
+/** Same reel reading the full-resolution media (public/travel/stjohns-4k/). Render with --scale=2 for 2160x3840. */
+export const Reel4K: React.FC<ReelProps> = (props) => (
+  <MediaRoot.Provider value="travel/stjohns-4k/">
+    <Reel {...props} />
+  </MediaRoot.Provider>
+);

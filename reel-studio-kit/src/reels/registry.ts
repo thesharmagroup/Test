@@ -44,6 +44,7 @@ export const REELS: ReelEntry[] = [
   { id: "stjohns-flash", Component: r_stjohns_flash.Reel, durationInFrames: r_stjohns_flash.durationInFrames },
   { id: "stjohns-vhs", Component: r_stjohns_vhs.Reel, durationInFrames: r_stjohns_vhs.durationInFrames },
   { id: "stjohns-polaroid", Component: r_stjohns_polaroid.Reel, durationInFrames: r_stjohns_polaroid.durationInFrames },
+  { id: "stjohns-flash-4k", Component: r_stjohns_flash.Reel4K, durationInFrames: r_stjohns_flash.durationInFrames },
   // <new-reel-entries>
 ];
 
