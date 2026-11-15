@@ -31,7 +31,8 @@ export const Music: React.FC<Props> = ({ src, voice, level = 0.16, ducked = 0.07
     <Audio
       src={staticFile(src)}
       volume={(f) => {
-        const duck = smooth.length ? smooth[Math.min(f, smooth.length - 1)] : 1;
+        // no voice track -> never duck (play at `level`)
+        const duck = smooth.length ? smooth[Math.min(f, smooth.length - 1)] : 0;
         const base = level - (level - ducked) * duck;
         const fade = Math.min(
           interpolate(f, [0, fadeInFrames], [0, 1], { extrapolateRight: "clamp" }),

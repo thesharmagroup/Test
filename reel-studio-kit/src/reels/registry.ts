@@ -10,6 +10,9 @@ import * as r_canada_pr from "./canada-pr/Reel";
 import * as r_sask_pr from "./sask-pr/Reel";
 import * as r_study_pr from "./study-pr/Reel";
 import * as r_stjohns_trip from "./stjohns-trip/Reel";
+import * as r_stjohns_flash from "./stjohns-flash/Reel";
+import * as r_stjohns_vhs from "./stjohns-vhs/Reel";
+import * as r_stjohns_polaroid from "./stjohns-polaroid/Reel";
 // <new-reel-imports>
 
 export type ReelEntry = {
@@ -38,6 +41,9 @@ export const REELS: ReelEntry[] = [
   { id: "sask-pr", Component: r_sask_pr.Reel, durationInFrames: r_sask_pr.durationInFrames },
   { id: "study-pr", Component: r_study_pr.Reel, durationInFrames: r_study_pr.durationInFrames },
   { id: "stjohns-trip", Component: r_stjohns_trip.Reel, durationInFrames: r_stjohns_trip.durationInFrames },
+  { id: "stjohns-flash", Component: r_stjohns_flash.Reel, durationInFrames: r_stjohns_flash.durationInFrames },
+  { id: "stjohns-vhs", Component: r_stjohns_vhs.Reel, durationInFrames: r_stjohns_vhs.durationInFrames },
+  { id: "stjohns-polaroid", Component: r_stjohns_polaroid.Reel, durationInFrames: r_stjohns_polaroid.durationInFrames },
   // <new-reel-entries>
 ];
 
