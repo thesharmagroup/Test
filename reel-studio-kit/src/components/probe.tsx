@@ -38,6 +38,9 @@ const measure = (frame: number) => {
   els.forEach((e, i) => (e.style.transform = saved[i]));
 
   for (const { e, name, r } of boxes) {
+    // Full-bleed photos/videos (data-fullbleed) fill the frame on purpose: they count as content
+    // but are not held to the safe zone and may sit under text.
+    if (e.dataset.fullbleed !== undefined) continue;
     if (r.left < SAFE.left - tol || r.right > WIDTH - SAFE.right + tol || r.top < SAFE.top - tol || r.bottom > HEIGHT - SAFE.bottom + tol) {
       issues.push({
         type: "safe-zone",
@@ -62,6 +65,7 @@ const measure = (frame: number) => {
       const a = boxes[i];
       const b = boxes[j];
       if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+      if (a.e.dataset.fullbleed !== undefined || b.e.dataset.fullbleed !== undefined) continue;
       // A sticker may sit on a card corner (data-overlap-ok="card") but not on text or other things.
       const okOn = (x: typeof a, y: typeof a) => x.e.dataset.overlapOk === "card" && (y.name === "card" || y.name === "endcard");
       if (okOn(a, b) || okOn(b, a)) continue;

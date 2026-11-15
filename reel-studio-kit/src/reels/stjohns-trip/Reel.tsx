@@ -48,7 +48,7 @@ const Shot: React.FC<{ clip: Clip; index: number; frames: number }> = ({ clip, i
   const drift = interpolate(f, [0, frames + FADE], [0, index % 3 === 0 ? -14 : 14]);
   const fill: React.CSSProperties = { width: "100%", height: "100%", objectFit: "cover" };
   return (
-    <AbsoluteFill style={{ opacity: fadeIn, overflow: "hidden", backgroundColor: "#000" }}>
+    <AbsoluteFill data-el="shot" data-kind="content" data-fullbleed="" style={{ opacity: fadeIn, overflow: "hidden", backgroundColor: "#000" }}>
       <AbsoluteFill style={{ transform: `scale(${scale}) translateX(${drift}px)` }}>
         {isVideo(clip.src) ? (
           <OffthreadVideo src={staticFile(clip.src)} muted startFrom={Math.round((clip.trimStart ?? 0) * FPS)} style={fill} />
