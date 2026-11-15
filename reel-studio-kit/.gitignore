@@ -7,3 +7,10 @@ tools/.venv
 __pycache__
 *.zip
 .git
+
+# Personal travel photos/videos stay local (not pushed); only the clip list is tracked.
+public/travel/**/*.jpg
+public/travel/**/*.jpeg
+public/travel/**/*.png
+public/travel/**/*.mp4
+public/travel/**/*.mov

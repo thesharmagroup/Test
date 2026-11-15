@@ -1,0 +1,27 @@
+{
+  "title": "St. John's",
+  "kicker": "Newfoundland & Labrador",
+  "bpm": 100,
+  "music": "music/travel-bed.wav",
+  "clips": [
+    { "src": "travel/stjohns/snap_pearson_letsgoo.jpg", "beats": 4, "kicker": "Trip diary", "title": "Toronto to St. John's", "pos": "top" },
+    { "src": "travel/stjohns/snap_pearson_video.mp4", "beats": 4, "trimStart": 0.5 },
+    { "src": "travel/stjohns/IMG_9045.mp4", "beats": 4, "trimStart": 2 },
+    { "src": "travel/stjohns/snap_pearson_window.jpg", "beats": 4 },
+    { "src": "travel/stjohns/IMG_9047.jpg", "beats": 2, "kicker": "Toronto Pearson", "title": "Ready to fly", "pos": "top" },
+    { "src": "travel/stjohns/IMG_9048.jpg", "beats": 2 },
+    { "src": "travel/stjohns/IMG_9051.mp4", "beats": 4, "kicker": "Takeoff", "title": "Wheels up", "pos": "top", "whoosh": true },
+    { "src": "travel/stjohns/IMG_9052.jpg", "beats": 2, "kicker": "Ontario", "title": "From above", "pos": "top" },
+    { "src": "travel/stjohns/IMG_9053.jpg", "beats": 1 },
+    { "src": "travel/stjohns/IMG_9054.jpg", "beats": 1 },
+    { "src": "travel/stjohns/IMG_9055.jpg", "beats": 1 },
+    { "src": "travel/stjohns/IMG_9056.jpg", "beats": 1 },
+    { "src": "travel/stjohns/IMG_9057.jpg", "beats": 2 },
+    { "src": "travel/stjohns/snap_inflight_snack.jpg", "beats": 4 },
+    { "src": "travel/stjohns/IMG_9064.mp4", "beats": 8, "kicker": "Welcome to", "title": "St. John's, NL", "pos": "top", "whoosh": true },
+    { "src": "travel/stjohns/snap_pippy_park.jpg", "beats": 4 },
+    { "src": "travel/stjohns/snap_fort_townshend.jpg", "beats": 4 },
+    { "src": "travel/stjohns/snap_city_hall.jpg", "beats": 4 },
+    { "src": "travel/stjohns/snap_signal_hill.jpg", "beats": 10, "end": true, "whoosh": true }
+  ]
+}
