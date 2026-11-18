@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="hi-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gym Manager Automation | n8n Complete Setup Guide</title>
+<meta name="description" content="Google Sheet, WhatsApp reminders, payment tracking aur daily owner report: ek gym ke liye poora n8n workflow, step by step. By Sachin Prajapati.">
+<meta property="og:title" content="n8n Gym Manager Automation: Complete Setup Guide">
+<meta property="og:description" content="Google Sheet, WhatsApp reminders, payment tracking aur daily owner report: ek gym ke liye poora n8n workflow, step by step.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#14130f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314130f'/%3E%3Cpath d='M14 26v12M20 22v20M44 22v20M50 26v12M20 32h24' stroke='%23d4ff3a' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ee; --surface:#ffffff; --surface-2:#efece4; --ink:#14130f; --ink-2:#4a4740; --ink-3:#7a766c;
+  --line:#e2ded3; --accent:#c6f432; --accent-ink:#14130f; --accent-2:#ff5a1f;
+  --code-bg:#17160f; --code-ink:#e9e6dc; --ok:#2f7d32;
+  --radius:14px; --shadow:0 1px 2px rgba(20,19,15,.05),0 8px 24px rgba(20,19,15,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#100f0c; --surface:#18170f; --surface-2:#211f17; --ink:#f1eee5; --ink-2:#bcb8ab; --ink-3:#8a8679;
+    --line:#2e2c23; --accent:#c6f432; --accent-ink:#14130f; --accent-2:#ff7a45;
+    --code-bg:#0b0a07; --code-ink:#e9e6dc; --ok:#7bd27f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#100f0c; --surface:#18170f; --surface-2:#211f17; --ink:#f1eee5; --ink-2:#bcb8ab; --ink-3:#8a8679;
+  --line:#2e2c23; --accent:#c6f432; --accent-ink:#14130f; --accent-2:#ff7a45;
+  --code-bg:#0b0a07; --code-ink:#e9e6dc; --ok:#7bd27f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.7 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration-color:var(--accent-2);text-underline-offset:3px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:650;letter-spacing:-.01em;line-height:1.15;margin:0}
+code,pre,kbd{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+:not(pre)>code{font-size:.86em;background:var(--surface-2);border:1px solid var(--line);padding:.1em .4em;border-radius:6px;white-space:normal;overflow-wrap:anywhere}
+strong{font-weight:650}
+
+/* progress + topbar */
+.progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent-2);z-index:60}
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1240px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.brand{white-space:nowrap;min-width:0;display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none;letter-spacing:-.01em}
+.brand-mark{flex:none;width:30px;height:30px;border-radius:8px;background:#14130f;display:grid;place-items:center}
+.brand-mark svg{width:20px;height:20px}
+.topbar .spacer{flex:1}
+.icon-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);height:36px;min-width:36px;padding:0 10px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font:inherit;font-size:14px}
+.icon-btn:hover{border-color:var(--ink-3)}
+.icon-btn svg{width:18px;height:18px}
+#menuBtn{display:none}
+
+/* hero */
+.hero{background:var(--ink);color:#f1eee5;position:relative;overflow:hidden}
+.hero-in{max-width:1240px;margin:0 auto;padding:72px 16px 64px;position:relative}
+.hero .eyebrow{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-size:clamp(36px,6vw,68px);margin:16px 0 18px;max-width:15ch;color:#fff}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.lede{font-size:clamp(17px,2vw,20px);max-width:58ch;color:#cfcbbf;margin:0 0 28px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:14px;color:#bdb9ad}
+.pill{border:1px solid #3a382e;border-radius:999px;padding:4px 12px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:600;text-decoration:none;font-size:15px}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{border:1px solid #3a382e;color:#f1eee5}
+.btn-ghost:hover{border-color:#6b685c}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(#1f1d16 1px,transparent 1px),linear-gradient(90deg,#1f1d16 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 80% 30%,#000 10%,transparent 65%);opacity:.9}
+
+/* flow diagram in hero */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:48px}
+.flow-card{background:#1b1a13;border:1px solid #2e2c23;border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}
+.flow-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.flow-card .n{font:500 12px "JetBrains Mono",monospace;color:var(--accent)}
+.flow-card h3{font-size:18px;margin:6px 0 6px;color:#fff}
+.flow-card p{margin:0;font-size:14px;color:#a9a597;line-height:1.5}
+
+/* layout */
+.layout{max-width:1240px;margin:0 auto;padding:40px 16px 80px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:56px}
+.toc{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 100px);overflow:auto;padding-right:6px}
+.toc-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+.toc ol{list-style:none;margin:0;padding:0;counter-reset:t}
+.toc li a{display:flex;gap:10px;padding:7px 10px;border-radius:9px;text-decoration:none;font-size:14px;color:var(--ink-2);line-height:1.4}
+.toc li a .k{font:500 12px "JetBrains Mono",monospace;color:var(--ink-3);min-width:20px;padding-top:2px}
+.toc li a:hover{background:var(--surface-2);color:var(--ink)}
+.toc li a.active{background:var(--ink);color:var(--bg)}
+.toc li a.active .k{color:var(--accent)}
+.toc-progress{margin-top:18px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:13px;color:var(--ink-2)}
+.bar{height:6px;border-radius:9px;background:var(--surface-2);overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+
+/* content */
+.content{min-width:0;max-width:780px}
+section.chapter{padding-top:12px;margin-bottom:72px}
+.ch-label{font:500 13px "JetBrains Mono",monospace;color:var(--accent-2);letter-spacing:.04em}
+section.chapter>h2{font-size:clamp(28px,3.6vw,40px);margin:8px 0 18px}
+.content h3{font-size:22px;margin:36px 0 12px}
+.content p{margin:0 0 16px;color:var(--ink)}
+.content ul,.content ol{padding-left:22px;margin:0 0 18px}
+.content li{margin:6px 0}
+.content li::marker{color:var(--ink-3)}
+.lead{font-size:18.5px;color:var(--ink-2)}
+.callout{border:1px solid var(--line);border-left:4px solid var(--accent-2);background:var(--surface);border-radius:12px;padding:16px 18px;margin:20px 0}
+.callout.tip{border-left-color:var(--ok)}
+.callout p:last-child{margin-bottom:0}
+.wwh{display:grid;gap:12px;margin:12px 0 20px}
+.wwh div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.wwh b{display:inline-block;font:600 12px "JetBrains Mono",monospace;letter-spacing:.06em;color:var(--accent-2);margin-right:8px}
+
+/* tables */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:16px 0 22px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600;font-size:13.5px;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+
+/* code */
+.code{position:relative;margin:16px 0 22px;border-radius:12px;background:var(--code-bg);border:1px solid #2a281f}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 8px 16px;border-bottom:1px solid #2a281f;font:500 12px "JetBrains Mono",monospace;color:#8f8b7e}
+.copy{background:#24221a;color:#e9e6dc;border:1px solid #3a382e;border-radius:8px;padding:5px 10px;font:500 12px Inter,sans-serif;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.copy:hover{border-color:var(--accent)}
+.copy-sm{background:var(--surface-2);color:var(--ink);border-color:var(--line)}
+.copy.done{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+pre{margin:0;padding:16px;overflow-x:auto;color:var(--code-ink);font-size:13.5px;line-height:1.65;tab-size:2}
+pre .c{color:#7f7b6e;font-style:italic}
+pre .s{color:#c6f432}
+pre .k{color:#ff9a6b}
+pre .n{color:#8fd3ff}
+
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 22px}
+.node{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:500 13.5px "JetBrains Mono",monospace;box-shadow:var(--shadow)}
+.node.trig{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.arrow{color:var(--ink-3);font-size:18px}
+
+/* checklists */
+.checklist{list-style:none;padding:0!important;margin:12px 0 20px;display:grid;gap:8px}
+.checklist li{margin:0}
+.checklist label{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color .2s,background .2s}
+.checklist label:hover{border-color:var(--ink-3)}
+.checklist input{appearance:none;flex:none;width:20px;height:20px;margin-top:2px;border:2px solid var(--ink-3);border-radius:6px;display:grid;place-items:center;cursor:pointer;background:var(--surface)}
+.checklist input:checked{background:var(--ok);border-color:var(--ok)}
+.checklist input:checked::after{content:"";width:10px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.checklist input:checked+span{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-3)}
+.checklist input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.action-box{border:1px dashed var(--ink-3);border-radius:14px;padding:6px 16px 2px;margin-top:28px}
+.action-box h3{margin:14px 0 4px!important;font-size:18px!important;display:flex;align-items:center;gap:8px}
+.action-box h3::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent-2)}
+
+/* FAQ */
+details{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:10px 0;padding:0 16px}
+summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:500 20px/1 Inter;color:var(--ink-3)}
+details[open] summary::after{content:"–"}
+details p{margin:0 0 14px!important;color:var(--ink-2)!important}
+
+.weeks{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 24px}
+.week{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.week b{font:500 12px "JetBrains Mono",monospace;color:var(--accent-2)}
+.week p{margin:6px 0 0!important;font-size:14.5px;line-height:1.55}
+
+.sources{list-style:none;padding:0!important;display:grid;gap:8px}
+.sources a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none}
+.sources a:hover{border-color:var(--ink-3)}
+.sources small{color:var(--ink-3);white-space:nowrap}
+
+.scrim{display:none}
+footer{border-top:1px solid var(--line);padding:28px 16px;text-align:center;font-size:14px;color:var(--ink-3)}
+.to-top{position:fixed;right:16px;bottom:16px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.to-top.show{opacity:1;pointer-events:auto}
+
+/* responsive */
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr;gap:0}
+  #menuBtn{display:inline-flex}
+  .toc{position:fixed;top:61px;left:0;bottom:0;width:min(320px,86vw);max-height:none;background:var(--bg);border-right:1px solid var(--line);padding:20px 16px;z-index:45;transform:translateX(-102%);transition:transform .25s}
+  .toc.open{transform:none;box-shadow:var(--shadow)}
+  .scrim{position:fixed;inset:61px 0 0 0;background:rgba(0,0,0,.35);z-index:44;display:none}
+  .scrim.show{display:block}
+  .flow{grid-template-columns:repeat(2,1fr)}
+  .weeks{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:560px){
+  .flow,.weeks{grid-template-columns:1fr}
+  .hero-in{padding:48px 16px 44px}
+  .brand-text small{display:none}
+  .brand-text{font-size:15px}
+  .sources a{flex-direction:column;gap:2px}
+  th{white-space:normal}
+}
+@media print{
+  .topbar,.toc,.to-top,.progress,.copy,.hero-cta{display:none!important}
+  .layout{display:block}
+  .hero{background:none;color:#000}.hero h1,.hero p.lede{color:#000}.hero-grid{display:none}
+  section.chapter{break-inside:auto}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <button class="icon-btn" id="menuBtn" aria-label="Chapters kholo" aria-expanded="false" aria-controls="toc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <a class="brand" href="#top">
+      <span class="brand-mark"><svg viewBox="0 0 64 64"><path d="M14 26v12M20 22v20M44 22v20M50 26v12M20 32h24" stroke="#c6f432" stroke-width="5" stroke-linecap="round" fill="none"/></svg></span>
+      <span class="brand-text">Gym Manager Automation <small style="color:var(--ink-3);font-weight:500">· n8n guide</small></span>
+    </a>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="themeBtn" aria-label="Theme badlo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-in">
+    <span class="eyebrow">n8n · Google Sheets · WhatsApp · Razorpay</span>
+    <h1>Gym Manager <em>Automation</em>: Complete Setup Guide</h1>
+    <p class="lede">Google Sheet, WhatsApp reminders, payment tracking aur daily owner report: ek gym ke liye poora n8n workflow, step by step.</p>
+    <div class="hero-meta">
+      <span class="pill">Prepared by: Sachin Prajapati</span>
+      <span class="pill">Nov 13, 2026</span>
+      <span class="pill">9 chapters · 4 workflows</span>
+    </div>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#intro">Shuru karo →</a>
+      <a class="btn btn-ghost" href="#checklist">Implementation checklist</a>
+    </div>
+    <div class="flow">
+      <a class="flow-card" href="#ch4"><span class="n">WORKFLOW 1</span><h3>Member Entry</h3><p>Form se naya member aata hai, n8n Sheet mein row bana deta hai.</p></a>
+      <a class="flow-card" href="#ch5"><span class="n">WORKFLOW 2</span><h3>Expiry Reminder</h3><p>Roz subah sheet padhkar expiry ke paas wale members ko WhatsApp.</p></a>
+      <a class="flow-card" href="#ch6"><span class="n">WORKFLOW 3</span><h3>Payment Update</h3><p>Payment hote hi status "Paid" aur nayi expiry date set.</p></a>
+      <a class="flow-card" href="#ch7"><span class="n">WORKFLOW 4</span><h3>Daily Report</h3><p>Active, expired aur pending ka summary owner ko roz.</p></a>
+    </div>
+  </div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="Table of contents">
+    <p class="toc-title">Table of contents</p>
+    <ol>
+      <li><a href="#intro"><span class="k">00</span>Introduction</a></li>
+      <li><a href="#ch1"><span class="k">01</span>Reel ka promise aur poora system</a></li>
+      <li><a href="#ch2"><span class="k">02</span>Tools aur accounts</a></li>
+      <li><a href="#ch3"><span class="k">03</span>Google Sheet ka design</a></li>
+      <li><a href="#ch4"><span class="k">04</span>Workflow 1: Member entry</a></li>
+      <li><a href="#ch5"><span class="k">05</span>Workflow 2: Expiry reminder</a></li>
+      <li><a href="#ch6"><span class="k">06</span>Workflow 3: Payment update</a></li>
+      <li><a href="#ch7"><span class="k">07</span>Workflow 4: Daily report</a></li>
+      <li><a href="#ch8"><span class="k">08</span>Testing, errors, privacy</a></li>
+      <li><a href="#ch9"><span class="k">09</span>Service kaise bechein</a></li>
+      <li><a href="#checklist"><span class="k">10</span>Checklist &amp; quick reference</a></li>
+      <li><a href="#faq"><span class="k">11</span>Mistakes &amp; FAQs</a></li>
+      <li><a href="#plan"><span class="k">12</span>Action plan &amp; sources</a></li>
+    </ol>
+    <div class="toc-progress">
+      <span id="progText">0 / 0 tasks done</span>
+      <div class="bar"><i id="progBar"></i></div>
+    </div>
+  </nav>
+
+  <main class="content">
+
+<!-- INTRO -->
+<section class="chapter" id="intro">
+  <span class="ch-label">INTRODUCTION</span>
+  <h2>Is ebook ka maqsad</h2>
+  <p class="lead">Is ebook ka maqsad ek hi hai: aap n8n se ek chhote gym ke liye working Gym Manager Automation bana sako, aur use ek paid service ki tarah gym owners ko bech sako.</p>
+  <p>Reel mein promise tha ki naya member Google Sheet mein khud save hoga, expiry se pehle WhatsApp reminder jayega, payment status khud update hoga, aur owner ko daily report milegi. Yeh ebook un chaaron cheezon ko ek ke baad ek build karna sikhata hai.</p>
+  <p>Yeh ebook theory nahi hai. Har chapter mein pehle batate hain ki cheez kya hai, kyun chahiye, kaise kaam karti hai, phir exact steps aur copy-paste examples dete hain.</p>
+
+  <h3>Yeh ebook kiske liye hai</h3>
+  <ul>
+    <li>Beginners jinhone kabhi automation nahi banayi, par Google Sheets kholna aata hai.</li>
+    <li>Freelancers jo local businesses (gym, coaching, salon) ko automation service bechna chahte hain.</li>
+    <li>Gym owners ya managers jo apna member tracking system khud set karna chahte hain.</li>
+  </ul>
+  <p>Coding aana zaroori nahi hai. Kuch chhote JavaScript snippets aur Google Sheet formulas diye gaye hain, jo bas copy-paste karne hain.</p>
+
+  <h3>Aap kya seekhoge</h3>
+  <ul>
+    <li>Gym ke members, fees aur expiry ke liye ek clean Google Sheet design karna.</li>
+    <li>n8n mein 4 workflows banana: member entry, expiry reminder, payment update, daily report.</li>
+    <li>WhatsApp par message bhejne ke options aur unke trade-offs samajhna.</li>
+    <li>Workflow ko test karna aur galti hone par pata lagana.</li>
+    <li>Gym owner ko demo dena, proposal banana aur setup fee (10 se 15 hazaar rupaye) justify karna.</li>
+  </ul>
+
+  <h3>Is ebook ko kaise use karein</h3>
+  <p>Chapters ko order mein follow karo, kyunki har workflow pichle wale ke Google Sheet par chalta hai. Pehle apne liye ek dummy gym banao (5 se 10 fake members), poora system test karo, aur tabhi kisi asli gym owner ko dikhao. Jahan pricing, plan limits ya platform rules ki baat hai, wahan source link diya hai; ye cheezein badalti rehti hain, isliye use karne se pehle official page ek baar check kar lena.</p>
+  <div class="callout"><p><strong>Zaroori note:</strong> Is ebook mein kisi kamaai, client ya result ki guarantee nahi hai. 10 se 15 hazaar rupaye ek realistic setup fee ka example hai, jo aapke area, skill aur gym ke size par depend karta hai.</p></div>
+</section>
+
+<!-- CH1 -->
+<section class="chapter" id="ch1">
+  <span class="ch-label">CHAPTER 01</span>
+  <h2>Reel ka promise aur poora system ek nazar mein</h2>
+  <p class="lead">Gym Manager Automation ka kaam ek line mein: member data Google Sheet mein rakho, n8n us sheet ko roz check kare, aur jo kaam owner haath se karta tha (reminder, status update, report) woh khud ho jaaye.</p>
+
+  <h3>Reel mein kya promise tha</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Promise</th><th>Is ebook mein kahan milega</th></tr></thead>
+    <tbody>
+      <tr><td>Naya member join kare to details Google Sheet mein khud save hon</td><td><a href="#ch4">Chapter 4</a></td></tr>
+      <tr><td>Expiry se pehle member ko WhatsApp message jaye</td><td><a href="#ch5">Chapter 5</a></td></tr>
+      <tr><td>Payment hone par payment status khud update ho</td><td><a href="#ch6">Chapter 6</a></td></tr>
+      <tr><td>Owner ko daily report mile (active, expired, pending payments)</td><td><a href="#ch7">Chapter 7</a></td></tr>
+      <tr><td>Is skill se gym owner se 10 se 15 hazaar setup fee lena</td><td><a href="#ch9">Chapter 9</a></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Gym owner ki asli problem</h3>
+  <p>100 se 150 members wale gym mein har member ki joining date, plan, fees aur renewal date alag hoti hai. Register ya Excel mein yeh sab haath se dekhne par do cheezein hoti hain: roz ka time jaata hai, aur kisi ki renewal chhoot jaati hai, matlab owner ka paisa. Automation isi ek problem ko solve karta hai, isliye owner ke liye iski value clear hai.</p>
+
+  <h3>System kaise kaam karta hai</h3>
+  <p>Poore system mein 3 cheezein hain: Google Sheet (database), n8n (jo kaam chalata hai) aur WhatsApp (member tak message pahunchane ke liye). Isme 4 alag workflows hain:</p>
+  <ol>
+    <li><strong>Workflow 1, Member Entry:</strong> form ya webhook se naya member aata hai, n8n use Google Sheet mein ek nayi row bana deta hai.</li>
+    <li><strong>Workflow 2, Expiry Reminder:</strong> n8n roz subah sheet padhta hai, jin members ki expiry paas hai unhe WhatsApp template message bhejta hai.</li>
+    <li><strong>Workflow 3, Payment Update:</strong> member payment kare to payment platform n8n ko batata hai, n8n sheet mein status "Paid" kar deta hai aur membership ki nayi expiry date set karta hai.</li>
+    <li><strong>Workflow 4, Daily Report:</strong> n8n roz ek fixed time par active, expired aur pending members gin kar owner ko WhatsApp ya email par summary bhej deta hai.</li>
+  </ol>
+
+  <h3>Kya verified hai, kya recommendation hai</h3>
+  <ul>
+    <li><strong>Verified (official docs):</strong> n8n mein Schedule Trigger, Google Sheets Trigger aur WhatsApp Business Cloud node maujood hain. WhatsApp node mein "Send Template" operation hai. Razorpay Payment Links ke liye <code>payment_link.paid</code> webhook event hota hai. Sources <a href="#sources">end mein</a> hain.</li>
+    <li><strong>Recommendation (mera suggested design):</strong> sheet ke columns, status ke naam, message wording, aur 4 workflows ka split. Aap apne gym ke hisaab se badal sakte ho.</li>
+    <li><strong>Badal sakne wali cheezein:</strong> n8n aur WhatsApp ke prices aur rules. Inhe use karne se pehle official page par check karo.</li>
+  </ul>
+</section>
+
+<!-- CH2 -->
+<section class="chapter" id="ch2">
+  <span class="ch-label">CHAPTER 02</span>
+  <h2>Tools aur accounts jo chahiye</h2>
+  <p class="lead">Pure system ke liye 4 cheezein chahiye: n8n, Google account, WhatsApp ka ek sending route, aur (optional) ek payment platform. Chhote gym ke liye monthly kharch ka bada hissa n8n hosting aur WhatsApp messages ka hota hai.</p>
+
+  <h3>1. n8n: Cloud ya self-hosted</h3>
+  <div class="wwh">
+    <div><b>WHAT</b>n8n ek visual automation tool hai jahan aap nodes (boxes) ko jodkar workflow banate ho.</div>
+    <div><b>WHY</b>Isme Google Sheets, Schedule aur WhatsApp ke ready nodes hain, isliye coding kam lagti hai.</div>
+  </div>
+  <p><strong>HOW to choose:</strong></p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Option</th><th>Kaun use kare</th><th>Cost (approx., check karo)</th></tr></thead>
+    <tbody>
+      <tr><td>n8n Cloud Starter</td><td>Beginner, jo server nahi sambhalna chahta</td><td>Around €20/month annual billing ya €24 monthly, 2,500 executions/month</td></tr>
+      <tr><td>n8n Cloud Pro</td><td>Zyada executions ya zyada clients</td><td>Around €50/month annual billing ya €60 monthly, 10,000 executions/month</td></tr>
+      <tr><td>Self-hosted Community Edition</td><td>Jise server (VPS) chalana aata hai</td><td>Software free, server ka kharch alag (ek chhote VPS ke liye kuch dollars/month)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Cloud par free plan nahi hai, sirf 14 din ka free trial hai. Community Edition ka software free hai, par server, backup aur updates aapki zimmedari hain.</p>
+  <p><strong>Execution kaise gine jaate hain:</strong> n8n cloud mein ek workflow ka ek run ek execution hota hai, chahe usme kitne bhi steps hon. Is gym system mein Workflow 2 aur 4 roz ek baar chalte hain, yaani mahine mein lagbhag 60 executions. Workflow 1 aur 3 member ki activity par chalte hain, isliye ek gym ke liye 2,500 executions kaafi hote hain. Agar aap 5 se 10 gyms handle karoge to Pro ya self-hosting dekhna.</p>
+
+  <h3>2. Google account</h3>
+  <p>Ek Google account chahiye jisme Google Sheet banegi. Gym owner ke naam se alag account banana better hai, taaki client ke chhodne par data usi ke paas rahe. n8n mein Google Sheets credential OAuth se jodte hain.</p>
+
+  <h3>3. WhatsApp: message bhejne ke options</h3>
+  <p>Yeh sabse zaroori faisla hai, kyunki yahin kharch aur rules dono aate hain.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Option</th><th>Fayda</th><th>Dhyan rakhne wali baat</th></tr></thead>
+    <tbody>
+      <tr><td>WhatsApp Business Platform (Cloud API), n8n ke built-in node ke saath</td><td>Official route; n8n node mein Send Template operation hai</td><td>Business verification aur template approval chahiye; messages paid hain</td></tr>
+      <tr><td>Kisi BSP (jaise AiSensy) ke through</td><td>Setup aur dashboard aasan hota hai</td><td>BSP ki apni platform fees ho sakti hai</td></tr>
+      <tr><td>Unofficial WhatsApp web wrappers</td><td>Setup sasta lagta hai</td><td>Recommend nahi karta: WhatsApp rules ke khilaf ho sakte hain aur number ban ho sakta hai, jo client ka nuksan hoga</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>WhatsApp ka cost (India, approximate):</strong> Meta ab per delivered template message charge karta hai. Ek India pricing guide ke hisaab se 2026 mein marketing messages lagbhag ₹0.86 per message aur utility messages lagbhag ₹0.115 per message the (GST alag). Meta quarter ke pehle din pricing badal sakta hai, aur ek BSP ke notice ke mutabik 1 October 2026 se service messages ke rules bhi badle hain. Isliye apna final cost official rate card se calculate karo.</p>
+  <div class="callout tip"><p><strong>Ek example:</strong> agar 130 members mein se mahine mein 40 members ki expiry aati hai aur har member ko 2 reminder jaate hain, to 80 messages hue. Utility rate (approx. ₹0.115) par yeh lagbhag ₹9 plus GST banta hai. Agar Meta aapke template ko marketing category mein daal de, to rate lagbhag ₹0.86 ke hisaab se kuch ₹70 ke aaspaas aayega. Dono case mein kharch chhota hai, par category pehle se pata honi chahiye.</p></div>
+
+  <h3>4. Payment platform (optional, par Workflow 3 ke liye useful)</h3>
+  <p>Payment status khud update karne ke liye aisa payment platform chahiye jo payment hone par webhook bheje. Razorpay Payment Links is kaam ke liye <code>payment_link.paid</code> event deta hai. Agar gym sirf cash ya UPI screenshot leta hai, to <a href="#ch6">Chapter 6</a> mein ek simple alternative (owner ka WhatsApp confirmation) bhi diya hai.</p>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch2">
+      <li>n8n Cloud ka 14-day trial shuru karo (ya VPS par Community Edition install karo).</li>
+      <li>Ek naya Google account banao aur usme "Gym Manager" naam ki Google Sheet banao.</li>
+      <li>WhatsApp Business Platform ka setup shuru karo (Meta Business account aur ek alag phone number chahiye).</li>
+      <li>Agar online payments chahiye to Razorpay account ka status check karo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH3 -->
+<section class="chapter" id="ch3">
+  <span class="ch-label">CHAPTER 03</span>
+  <h2>Google Sheet ka design</h2>
+  <p class="lead">Sheet poore system ka database hai, isliye pehle isse sahi banao: ek tab members ke liye (n8n isme likhega), ek tab owner ke dashboard ke liye (sirf formulas, n8n ise nahi chhuega).</p>
+
+  <h3>Tab 1: Members</h3>
+  <p>Pehli row mein yeh headings exactly isi spelling mein likho. n8n columns ko naam se match karta hai, isliye baad mein spelling mat badlo.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Column</th><th>Kya hai</th><th>Kaun likhta hai</th></tr></thead>
+    <tbody>
+      <tr><td><code>member_id</code></td><td>Unique ID, jaise GYM-001</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>name</code></td><td>Member ka naam</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>phone</code></td><td>WhatsApp number country code ke saath, jaise 919876543210, bina + aur space ke</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>plan</code></td><td>Monthly, Quarterly, Yearly</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>plan_months</code></td><td>1, 3 ya 12</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>fee</code></td><td>Plan ki fees rupaye mein</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>start_date</code></td><td>Membership shuru hone ki date, YYYY-MM-DD format mein</td><td>n8n (Workflow 1)</td></tr>
+      <tr><td><code>expiry_date</code></td><td>start_date plus plan_months, YYYY-MM-DD</td><td>n8n (Workflow 1 aur 3)</td></tr>
+      <tr><td><code>payment_status</code></td><td>Pending ya Paid</td><td>n8n (Workflow 1 aur 3)</td></tr>
+      <tr><td><code>last_payment_date</code></td><td>Aakhri payment ki date</td><td>n8n (Workflow 3)</td></tr>
+      <tr><td><code>last_reminder_date</code></td><td>Aakhri reminder kab gaya</td><td>n8n (Workflow 2)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><p><strong>Zaroori rule:</strong> saari dates text mein YYYY-MM-DD format mein rakho (jaise 2026-12-15). Google Sheets alag-alag locale mein dates ko alag tarah se dikhata hai, aur format mismatch hone par n8n mein date comparison galat ho jaata hai. Date wale columns ko Format menu mein Plain text kar do.</p></div>
+
+  <p><strong>Sample rows (apne testing ke liye):</strong></p>
+  <div class="code"><div class="code-head"><span>members.csv</span><button class="copy">Copy</button></div>
+<pre><code>member_id,name,phone,plan,plan_months,fee,start_date,expiry_date,payment_status,last_payment_date,last_reminder_date
+GYM-001,Rohit Kumar,919000000001,Monthly,1,1200,2026-11-01,2026-12-01,Paid,2026-11-01,
+GYM-002,Neha Singh,919000000002,Quarterly,3,3000,2026-09-10,2026-12-10,Paid,2026-09-10,
+GYM-003,Amit Verma,919000000003,Monthly,1,1200,2026-10-05,2026-11-05,Pending,,</code></pre></div>
+  <p>Testing ke liye phone column mein hamesha apna ya apne kisi dost ka number daalo. Kisi asli member ko test message mat bhejo.</p>
+
+  <h3>Tab 2: Dashboard (sirf formulas)</h3>
+  <p>Owner jab sheet khole to ek nazar mein summary dikhe, uske liye ek alag tab banao jiska naam Dashboard ho. Maan lo Members tab mein expiry_date column H mein hai aur payment_status column I mein. Tab 2 ke cells mein yeh formulas daalo:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Cell label</th><th>Formula</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>Total members</td><td><code class="f">=COUNTA(Members!A2:A)</code></td><td><button class="copy copy-sm" data-copy-prev>Copy</button></td></tr>
+      <tr><td>Active members</td><td><code class="f">=SUMPRODUCT((Members!H2:H&lt;&gt;"")*(Members!H2:H&gt;=TEXT(TODAY(),"yyyy-mm-dd")))</code></td><td><button class="copy copy-sm" data-copy-prev>Copy</button></td></tr>
+      <tr><td>Expired members</td><td><code class="f">=SUMPRODUCT((Members!H2:H&lt;&gt;"")*(Members!H2:H&lt;TEXT(TODAY(),"yyyy-mm-dd")))</code></td><td><button class="copy copy-sm" data-copy-prev>Copy</button></td></tr>
+      <tr><td>Pending payments</td><td><code class="f">=COUNTIF(Members!I2:I,"Pending")</code></td><td><button class="copy copy-sm" data-copy-prev>Copy</button></td></tr>
+    </tbody>
+  </table></div>
+  <p>Active aur Expired wale formulas SUMPRODUCT use karte hain, kyunki YYYY-MM-DD text ko alphabetically compare karne par bhi sahi date order milta hai. Agar kisi formula mein number galat aaye, to pehle check karo ki dates sach mein plain text hain.</p>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch3">
+      <li>Members tab banao aur 11 headings upar ki table ke hisaab se likho.</li>
+      <li>Date columns ko Plain text format do.</li>
+      <li>Upar ke 3 sample rows apne number ke saath daalo.</li>
+      <li>Dashboard tab banao aur 4 formulas daal kar numbers check karo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH4 -->
+<section class="chapter" id="ch4">
+  <span class="ch-label">CHAPTER 04 · WORKFLOW 1</span>
+  <h2>Naya member Google Sheet mein khud save</h2>
+  <p class="lead">Yeh workflow ek online form se member ki details leta hai, expiry date nikalta hai aur Members tab mein row bana deta hai. Front desk par ek tablet ya phone par yeh form khula rakha ja sakta hai.</p>
+
+  <h3>Workflow ka flow</h3>
+  <div class="pipeline"><span class="node trig">n8n Form Trigger</span><span class="arrow">→</span><span class="node">Code</span><span class="arrow">→</span><span class="node">Google Sheets (Append or Update Row)</span></div>
+  <p>Yeh teen nodes kaafi hain. Aap chaho to end mein ek <code>WhatsApp (Send Template)</code> node jodkar welcome message bhi bhej sakte ho.</p>
+
+  <h3>Step by step</h3>
+  <ol>
+    <li>n8n mein New Workflow banao, naam rakho "1 - New Member Entry".</li>
+    <li><strong>Form Trigger node</strong> add karo. Form title "Gym Registration" rakho aur yeh fields banao: Name (text), Phone (text), Plan (dropdown: Monthly, Quarterly, Half-yearly, Yearly), Fee (number), Start Date (date).</li>
+    <li><strong>Code node</strong> add karo, mode "Run Once for All Items" rakho, aur neeche wala code paste karo.</li>
+    <li><strong>Google Sheets node</strong> add karo. Operation "Append or Update Row" chuno, apni Gym Manager sheet aur Members tab select karo. Mapping mode "Map Each Column Manually" rakho aur "Column to match on" mein phone chuno. Isse ek hi number do baar entry hone par duplicate row nahi banegi.</li>
+    <li>Har column ke saamne Code node ka matching field map karo (member_id, name, phone, plan, plan_months, fee, start_date, expiry_date, payment_status).</li>
+    <li>Form ko test karo: ek test member bharo, Sheet kholkar row check karo.</li>
+    <li>Sab sahi hone par workflow ko publish/activate karo. Form ka production URL alag hota hai; woh URL gym ke front desk ke browser mein bookmark kar do.</li>
+  </ol>
+
+  <h3>Code node ka code (copy-paste)</h3>
+  <p>Yeh code phone number ko 91 wale format mein badalta hai, plan se months nikalta hai aur expiry date calculate karta hai (mahine ke aakhri din ka dhyan rakhte hue, jaise 31 January plus 1 month = 28 February).</p>
+  <div class="code"><div class="code-head"><span>Code node · JavaScript</span><button class="copy">Copy</button></div>
+<pre><code>const planMonths = { 'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12 };
+
+function addMonths(isoDate, months) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const total = (m - 1) + months;
+  const ny = y + Math.floor(total / 12);
+  const nm = total % 12;
+  const lastDay = new Date(Date.UTC(ny, nm + 1, 0)).getUTCDate();
+  const nd = Math.min(d, lastDay);
+  return ny + '-' + String(nm + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
+}
+
+return $input.all().map(item =&gt; {
+  const f = item.json;
+  let phone = String(f['Phone']).replace(/\D/g, '');
+  if (phone.length === 10) phone = '91' + phone;
+  const months = planMonths[f['Plan']] || 1;
+  const start = String(f['Start Date']).slice(0, 10);
+  return {
+    json: {
+      member_id: 'GYM-' + String(Date.now()).slice(-6),
+      name: f['Name'],
+      phone: phone,
+      plan: f['Plan'],
+      plan_months: months,
+      fee: f['Fee'],
+      start_date: start,
+      expiry_date: addMonths(start, months),
+      payment_status: 'Pending'
+    }
+  };
+});</code></pre></div>
+  <p>Agar aapke form ke field names alag hain (jaise "Full Name"), to code mein <code>f['Name']</code> jaisi lines ko usi naam se badal do. n8n ke field names form ke label se hi aate hain.</p>
+  <p><strong>Pehle se bane members ka kya:</strong> gym ke purane 100 se 150 members ek baar Excel se copy karke seedha Members tab mein paste kar do (same 11 columns, same date format). Workflow 1 sirf naye members ke liye hai.</p>
+  <div class="callout tip"><p><strong>Alternative:</strong> agar owner Sheet mein hi row type karna chahta hai, to <code>Google Sheets Trigger</code> node use karo (events: Row added, Row updated, Row added or updated). Phir nayi row aate hi aap welcome message ya doosre steps chala sakte ho.</p></div>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch4">
+      <li>Form Trigger, Code aur Google Sheets nodes jodkar workflow banao.</li>
+      <li>Test form bharo aur check karo ki expiry_date sahi aayi.</li>
+      <li>Ek hi phone number se form do baar bharke dekho ki duplicate row nahi bani.</li>
+      <li>Workflow publish karo aur production form URL save karo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH5 -->
+<section class="chapter" id="ch5">
+  <span class="ch-label">CHAPTER 05 · WORKFLOW 2</span>
+  <h2>Expiry se pehle WhatsApp reminder</h2>
+  <p class="lead">Yeh workflow roz subah ek baar chalta hai, Sheet padhta hai, jin members ki expiry paas hai unhe WhatsApp template message bhejta hai, aur Sheet mein likh deta hai ki reminder aaj gaya.</p>
+
+  <h3>Workflow ka flow</h3>
+  <div class="pipeline"><span class="node trig">Schedule Trigger</span><span class="arrow">→</span><span class="node">Google Sheets (Get Row(s))</span><span class="arrow">→</span><span class="node">Code (filter)</span><span class="arrow">→</span><span class="node">WhatsApp (Send Template)</span><span class="arrow">→</span><span class="node">Google Sheets (Update Row)</span></div>
+
+  <h3>Pehle WhatsApp template banao</h3>
+  <p>WhatsApp par business-initiated message (jo member ne pehle message nahi kiya ho) sirf approved template se bheja ja sakta hai. Isliye Meta ke WhatsApp Manager mein ek template banao aur approval ka wait karo. Ek example text:</p>
+  <div class="code"><div class="code-head"><span>WhatsApp template · Utility</span><button class="copy">Copy</button></div>
+<pre><code>Namaste {{1}}, aapki gym membership {{2}} ko khatam ho rahi hai. Renew karne ke liye gym par aayein ya hamse sampark karein. Dhanyavaad!</code></pre></div>
+  <p>Isme <code>{{1}}</code> member ka naam hai aur <code>{{2}}</code> expiry date. Template ko "Utility" category mein submit karo, kyunki yeh ek existing membership ke baare mein update hai. Dhyan rakho: category Meta tay karta hai aur woh isse Marketing mein bhi badal sakta hai, jiska rate zyada hota hai (<a href="#ch2">Chapter 2</a> mein example hai). Template mein koi offer ya discount mat daalo, warna Marketing mein jaane ka chance badh jaata hai.</p>
+  <div class="callout"><p><strong>Opt-in:</strong> member se pehle consent lena zaroori hai ki gym use WhatsApp par messages bhejega. Chapter 4 ke form mein ek checkbox "Mujhe WhatsApp par membership updates chahiye" jod do, aur sirf unhi ko message bhejo.</p></div>
+
+  <h3>Step by step</h3>
+  <ol>
+    <li>Naya workflow banao: "2 - Expiry Reminder".</li>
+    <li><strong>Schedule Trigger</strong> add karo: interval "Days", roz subah 9 baje. Workflow ki timezone Asia/Kolkata set karo, nahi to reminder ghante-aadha ghanta aage-peeche ho sakta hai. Dhyan rakho: schedule wala workflow tabhi chalta hai jab woh publish/activate ho.</li>
+    <li><strong>Google Sheets node</strong> add karo, operation "Get Row(s)", Members tab, filter ke bina (saari rows).</li>
+    <li><strong>Code node</strong> add karo aur neeche wala filter code paste karo.</li>
+    <li><strong>WhatsApp node</strong> add karo: resource "Message", operation "Send Template". Apna sender phone number select karo, recipient mein <code>{{ $json.phone }}</code>, template wahi jo approve hua, aur body ke parameters mein pehle <code>{{ $json.name }}</code> phir <code>{{ $json.expiry_date }}</code> daalo. Parameters ka order template ke order jaisa hi hona chahiye, nahi to "invalid parameter" error aata hai.</li>
+    <li><strong>Google Sheets node</strong> (Update Row) add karo: phone se row match karo aur last_reminder_date mein aaj ki date likho: <code>{{ $now.setZone('Asia/Kolkata').toFormat('yyyy-MM-dd') }}</code>.</li>
+    <li>Sheet mein testing ke liye ek row ki expiry aaj se 3 din baad ki rakho aur workflow ko manually Execute karke dekho.</li>
+  </ol>
+
+  <h3>Filter code (copy-paste)</h3>
+  <p>Yeh code sirf unhi members ko aage bhejta hai jinki expiry 3 din baad ya aaj hai, aur jinhe aaj reminder pehle nahi gaya. Agar koi match nahi hota, to aage ke nodes chalte hi nahi, isliye khali din par koi message nahi jaata.</p>
+  <div class="code"><div class="code-head"><span>Code (filter) · JavaScript</span><button class="copy">Copy</button></div>
+<pre><code>const REMIND_DAYS = [3, 0]; // expiry se kitne din pehle reminder bhejna hai
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+function toUtc(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+
+return $input.all().filter(item =&gt; {
+  const r = item.json;
+  if (!r.expiry_date || !r.phone) return false;
+  if (r.last_reminder_date === today) return false;
+  const daysLeft = Math.round((toUtc(r.expiry_date) - toUtc(today)) / 86400000);
+  return REMIND_DAYS.includes(daysLeft);
+});</code></pre></div>
+  <p><code>en-CA</code> locale isliye use kiya hai kyunki woh date ko YYYY-MM-DD format mein deta hai, jo humari Sheet ke format se match karta hai.</p>
+
+  <h3>Reminder ka timing kaise tay karein</h3>
+  <ul>
+    <li><strong>3 din pehle aur expiry wale din:</strong> zyadatar gyms ke liye kaafi hai. <code>REMIND_DAYS = [3, 0]</code> rakho.</li>
+    <li><strong>Zyada reminder se bacho:</strong> har member ko mahine mein 2 se zyada message bhejne se member irritate ho sakte hain. Kuch log message ko spam report kar dete hain, jisse number ki quality kharab ho sakti hai.</li>
+  </ul>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch5">
+      <li>WhatsApp template submit karo aur approval ka wait karo.</li>
+      <li>Workflow ke 5 nodes jodo.</li>
+      <li>Apne number se test row banao aur reminder receive karke dekho.</li>
+      <li>Dobara chalane par check karo ki same din dusra message nahi gaya.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH6 -->
+<section class="chapter" id="ch6">
+  <span class="ch-label">CHAPTER 06 · WORKFLOW 3</span>
+  <h2>Payment hote hi status khud update</h2>
+  <p class="lead">Jaise hi member payment kare, Sheet mein payment_status Paid ho jaata hai, last_payment_date bhar jaati hai, aur renewal hone par expiry date aage badh jaati hai. Iske do raaste hain: online payment (Razorpay webhook) aur cash/UPI (owner ek chhota form bharta hai). Dono ka aakhri hissa same hai.</p>
+
+  <h3>Pehle Sheet mein ek column jodo</h3>
+  <p>Members tab mein 12th column <code>last_payment_ref</code> jodo. Isme payment link ki ID save hogi, taaki payment platform ek hi event do baar bheje (retry) to expiry do baar aage na badhe.</p>
+
+  <h3>Raasta A: Razorpay Payment Link (online payment)</h3>
+  <div class="pipeline"><span class="node trig">Webhook</span><span class="arrow">→</span><span class="node">IF</span><span class="arrow">→</span><span class="node">Code (extract)</span><span class="arrow">→</span><span class="node">Google Sheets (Get Row(s))</span><span class="arrow">→</span><span class="node">Code (compute)</span><span class="arrow">→</span><span class="node">Google Sheets (Update Row)</span></div>
+  <p><strong>Kaise kaam karta hai:</strong> gym har member ke liye Razorpay Payment Link banata hai aur uska reference_id wahi rakhta hai jo Sheet mein member_id hai (jaise GYM-123456). Jab member link se payment karta hai, Razorpay <code>payment_link.paid</code> event bhejta hai. Is event ke payload mein payment link ka reference_id aur status aata hai, isse hum sahi member ki row dhoondh lete hain.</p>
+  <ol>
+    <li>n8n mein workflow banao: "3 - Payment Update". Webhook node add karo: method POST, aur isse milne wala Production URL copy karo.</li>
+    <li>Razorpay Dashboard mein Account &amp; Settings, phir Webhooks mein jao, naya webhook banao, wohi URL daalo aur sirf <code>payment_link.paid</code> event select karo.</li>
+    <li>Webhook secret set karo. Webhook ko asli use karne se pehle signature verify karo, kyunki warna koi bhi us URL par fake request bhejkar kisi ko Paid mark kar sakta hai. Razorpay signature header mein bhejta hai, aur use verify karne ke liye raw request body chahiye hota hai, parsed JSON nahi. Webhook node ke options mein Raw Body on karke Crypto node se HMAC SHA256 nikaalo aur header se compare karo. Poora process Razorpay ke official webhook docs mein diya hai (<a href="#sources">sources</a> dekho).</li>
+    <li>IF node mein condition lagao: event barabar <code>payment_link.paid</code>.</li>
+    <li>Code (extract) node ka naam "Extract Payment" rakho aur yeh code paste karo:</li>
+  </ol>
+  <div class="code"><div class="code-head"><span>Extract Payment · JavaScript</span><button class="copy">Copy</button></div>
+<pre><code>const b = $input.first().json.body;
+const e = b.payload.payment_link.entity;
+return [{ json: {
+  event: b.event,
+  member_id: e.reference_id,
+  link_id: e.id,
+  amount_paid: e.amount_paid / 100   // Razorpay amount paise mein deta hai
+}}];</code></pre></div>
+  <ol start="6">
+    <li>Google Sheets (Get Row(s)) mein filter lagao: column member_id barabar <code>{{ $json.member_id }}</code>.</li>
+    <li>Code (compute) node mein yeh code paste karo. Yeh nayi expiry date nikalta hai: agar membership abhi chal rahi hai to purani expiry se aage, aur agar expire ho chuki hai to aaj se aage. Naye member ki pehli payment par expiry nahi badhti, kyunki Workflow 1 ne use pehle hi start_date se calculate kar di hai.</li>
+  </ol>
+  <div class="code"><div class="code-head"><span>Code (compute) · JavaScript</span><button class="copy">Copy</button></div>
+<pre><code>function addMonths(isoDate, months) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const total = (m - 1) + months;
+  const ny = y + Math.floor(total / 12);
+  const nm = total % 12;
+  const lastDay = new Date(Date.UTC(ny, nm + 1, 0)).getUTCDate();
+  const nd = Math.min(d, lastDay);
+  return ny + '-' + String(nm + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
+}
+
+const row = $input.first().json;
+const pay = $('Extract Payment').first().json;
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+if (row.last_payment_ref === pay.link_id) return []; // yeh payment pehle process ho chuki
+
+const firstPayment = !row.last_payment_date;
+const base = row.expiry_date &gt; today ? row.expiry_date : today;
+const newExpiry = firstPayment ? row.expiry_date : addMonths(base, Number(row.plan_months));
+
+return [{ json: {
+  member_id: row.member_id,
+  payment_status: 'Paid',
+  last_payment_date: today,
+  expiry_date: newExpiry,
+  last_payment_ref: pay.link_id
+}}];</code></pre></div>
+  <ol start="8">
+    <li>Google Sheets (Update Row): member_id se row match karo aur payment_status, last_payment_date, expiry_date, last_payment_ref ko Code node ke fields se map karo.</li>
+    <li>Test karne ke liye Razorpay ka test mode use karo, ek test payment link banao aur payment karke Sheet check karo. Aise test ke liye alag test member row rakho, asli member par test mat karo.</li>
+  </ol>
+  <p>Payment Link kaise banta hai (dashboard se ya API se), iske liye Razorpay ke official Payment Links docs dekho. Dhyan rakho: payment ka paisa seedha gym ke Razorpay account mein jaata hai, aapke paas nahi.</p>
+
+  <h3>Raasta B: cash ya UPI (owner khud confirm kare)</h3>
+  <p>Agar gym online payment link use nahi karta, to Form Trigger se ek "Record Payment" form banao jisme member ka phone, amount aur payment mode (Cash, UPI) ho. Form submit hone par n8n phone se member ki row dhoondhta hai aur wahi "compute" code aur "Update Row" node chalata hai (compute code mein <code>pay.link_id</code> ki jagah ek khud ki ID, jaise <code>'manual-' + Date.now()</code>, rakh do). Is tarah owner ko Sheet kholkar haath se status badalna nahi padta, sirf ek form bharna padta hai.</p>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch6">
+      <li>Members tab mein last_payment_ref column jodo.</li>
+      <li>Raasta A ya B mein se jo gym ke hisaab se ho, woh banao.</li>
+      <li>Test payment karke dekho ki status Paid hua aur expiry sahi aage badhi.</li>
+      <li>Same event dobara bhejkar dekho ki expiry dusri baar aage nahi badhti.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH7 -->
+<section class="chapter" id="ch7">
+  <span class="ch-label">CHAPTER 07 · WORKFLOW 4</span>
+  <h2>Owner ke liye daily report</h2>
+  <p class="lead">Yeh workflow roz ek fixed time par Sheet padhta hai, active, expired aur pending payments gin kar owner ko summary bhej deta hai. Owner ko register ya spreadsheet kholne ki zaroorat nahi padti.</p>
+
+  <h3>Teen counts ki definition</h3>
+  <p>Report se pehle yeh tay kar lo ki teeno ka matlab kya hai, taaki owner aur system dono ek hi cheez gine:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Count</th><th>Matlab</th><th>Sheet ka rule</th></tr></thead>
+    <tbody>
+      <tr><td>Active</td><td>Membership chal rahi hai</td><td>expiry_date aaj ya aaj ke baad ki hai</td></tr>
+      <tr><td>Expired</td><td>Membership khatam ho chuki, renewal baaki hai</td><td>expiry_date aaj se pehle ki hai</td></tr>
+      <tr><td>Pending payments</td><td>Payment abhi aayi nahi</td><td>payment_status barabar Pending</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Workflow ka flow</h3>
+  <div class="pipeline"><span class="node trig">Schedule Trigger</span><span class="arrow">→</span><span class="node">Google Sheets (Get Row(s))</span><span class="arrow">→</span><span class="node">Code</span><span class="arrow">→</span><span class="node">Gmail ya WhatsApp</span></div>
+
+  <h3>Step by step</h3>
+  <ol>
+    <li>Naya workflow banao: "4 - Daily Report". Schedule Trigger mein roz subah 8 baje (ya raat 9 baje) set karo, timezone Asia/Kolkata.</li>
+    <li>Google Sheets (Get Row(s)) se Members tab ki saari rows lo.</li>
+    <li>Code node mein neeche wala code paste karo.</li>
+    <li>Report bhejne ka tareeka chuno (neeche dono hain). Workflow publish/activate karo.</li>
+  </ol>
+
+  <h3>Code (copy-paste)</h3>
+  <div class="code"><div class="code-head"><span>Daily report · JavaScript</span><button class="copy">Copy</button></div>
+<pre><code>const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+const rows = $input.all().map(i =&gt; i.json).filter(r =&gt; r.member_id);
+
+const active  = rows.filter(r =&gt; r.expiry_date &gt;= today);
+const expired = rows.filter(r =&gt; r.expiry_date &amp;&amp; r.expiry_date &lt; today);
+const pending = rows.filter(r =&gt; r.payment_status === 'Pending');
+
+const names = list =&gt; list.length ? list.map(r =&gt; r.name).join(', ') : 'Koi nahi';
+
+const text =
+  'Gym report ' + today + '\n' +
+  'Active members: ' + active.length + '\n' +
+  'Expired memberships: ' + expired.length + ' (' + names(expired) + ')\n' +
+  'Pending payments: ' + pending.length + ' (' + names(pending) + ')';
+
+return [{ json: {
+  date: today,
+  active: active.length,
+  expired: expired.length,
+  pending: pending.length,
+  text
+}}];</code></pre></div>
+
+  <h3>Report bhejne ke do tareeke</h3>
+  <p><strong>Tareeka 1: Email (sabse aasan).</strong> Gmail node (ya Send Email node) jodo, recipient mein owner ka email daalo, subject mein <code>Gym report {{ $json.date }}</code> aur message mein <code>{{ $json.text }}</code>. Isme member ke naam bhi aate hain, aur kisi WhatsApp template ki zaroorat nahi.</p>
+  <p><strong>Tareeka 2: WhatsApp.</strong> Owner ko report bhejne ke liye bhi approved template chahiye (jab tak owner ne pichle 24 ghante mein aapke business number ko message nahi kiya ho). Template body parameters mein new line allowed nahi hoti, isliye ek line ka template banao, jaise:</p>
+  <div class="code"><div class="code-head"><span>WhatsApp template · owner report</span><button class="copy">Copy</button></div>
+<pre><code>Gym report {{1}}: Active {{2}}, Expired {{3}}, Pending payments {{4}}. Poori list Sheet ke Dashboard tab par dekhein.</code></pre></div>
+  <p>Phir WhatsApp node (Send Template) mein parameters <code>{{ $json.date }}</code>, <code>{{ $json.active }}</code>, <code>{{ $json.expired }}</code>, <code>{{ $json.pending }}</code> is order mein daalo. Isme sirf counts jaate hain; naam wali list owner Sheet ya email mein dekh sakta hai.</p>
+  <div class="callout tip"><p><strong>Mera suggestion:</strong> shuru mein email wala tareeka lagao (kam setup, kam cost) aur owner jab WhatsApp maange tab Tareeka 2 jodo.</p></div>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch7">
+      <li>Teeno counts ki definition owner se confirm karo.</li>
+      <li>Workflow banao aur 3 test rows (active, expired, pending) ke saath chalakar numbers apni aankhon se match karo.</li>
+      <li>Report ka time owner ki pasand se set karo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH8 -->
+<section class="chapter" id="ch8">
+  <span class="ch-label">CHAPTER 08</span>
+  <h2>Testing, errors aur data privacy</h2>
+  <p class="lead">Client ko system dene se pehle har workflow ko jaan-bujhkar todkar dekho. Ek galat reminder ya galat Paid status owner ka bharosa turant tod deta hai.</p>
+
+  <h3>Testing ka sahi tareeka</h3>
+  <ol>
+    <li><strong>Alag test Sheet rakho:</strong> poora system pehle ek dummy Sheet par chalao jisme sirf aapke ya aapke doston ke numbers hon.</li>
+    <li><strong>Edge cases test karo:</strong> 31 January wali join date, ek hi phone dobara, expire ho chuka member jo payment karta hai, ek payment event do baar aana, aur khali phone wali row.</li>
+    <li><strong>Manual Execute pehle, schedule baad mein:</strong> schedule wale workflow ko pehle "Execute workflow" se haath se chalao, aur output har node par dekho.</li>
+    <li><strong>Production URL alag hai:</strong> Form aur Webhook nodes ka Test URL aur Production URL alag hote hain. Client ko hamesha Production URL do, aur workflow publish/activate karna mat bhoolo.</li>
+  </ol>
+
+  <h3>Galti hone par pata kaise chale</h3>
+  <p>n8n mein ek alag workflow banao jiska pehla node <strong>Error Trigger</strong> ho, aur uske baad ek email ya WhatsApp message jo aapko batae ki kaunsa workflow fail hua. Phir har production workflow ki Settings mein is error workflow ko Error Workflow ke roop mein chuno. Nodes ki setting mein "Continue on Fail" tabhi on karo jab aap jaan-bujhkar chahte ho ki ek row fail hone par baaki rows chalti rahein. Mera suggestion: reminder wale workflow mein yeh on rakho, taaki ek member ka galat number baaki sabke reminder na rok de.</p>
+
+  <h3>Common errors</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Problem</th><th>Wajah</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td>WhatsApp node "invalid parameter" error de raha hai</td><td>Template ke parameters ka order ya count galat hai</td><td>Template aur n8n ke parameters ka order milao, khali value par fallback value rakho</td></tr>
+      <tr><td>Reminder bilkul nahi gaya</td><td>Phone mein + ya space hai, ya member ne pehle kabhi consent nahi diya</td><td>Chapter 4 ka code phone saaf karta hai; consent checkbox check karo</td></tr>
+      <tr><td>Schedule wale workflow ne kuch nahi chalaya</td><td>Workflow publish/activate nahi hai ya timezone galat hai</td><td>Workflow ko publish karo aur Asia/Kolkata timezone set karo</td></tr>
+      <tr><td>Dashboard ke numbers galat aaye</td><td>Date column plain text nahi hai ya alag format mein hai</td><td>Sab dates YYYY-MM-DD plain text mein karo</td></tr>
+      <tr><td>Expiry galat date par aayi</td><td>Month-end ka case ya galat plan_months</td><td>Chapter 4 ke addMonths code ko use karo aur plan ke naam spelling se match karo</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Data privacy aur WhatsApp rules</h3>
+  <p>Members ka naam aur phone number personal data hai. Kuch basic niyam jo har project mein follow karo:</p>
+  <ul>
+    <li>Sheet gym owner ke account mein rahe, aur sirf zaroori logon ke saath share ho. Public link sharing kabhi on mat karo.</li>
+    <li>Consent lo: member se WhatsApp messages ke liye likhit ya form ke through sahmati lo, aur jo member message band karwana chahe use list se hata do.</li>
+    <li>Sirf zaroori data rakho: is system ko health details, ID proof jaisi cheezein rakhne ki zaroorat nahi hai.</li>
+    <li>Kanoon ka dhyan: India mein personal data par Digital Personal Data Protection Act, 2023 lagu hota hai. Main lawyer nahi hoon, isliye client ke liye privacy notice aur consent ke wording ke liye kisi vakil se salah lo.</li>
+    <li>Meta ke rules follow karo: template mein sirf sahi category ka content daalo, aur spam jaisa bhej-bhej kar number ki quality kharab mat karo.</li>
+  </ul>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch8">
+      <li>5 edge cases ki list banao aur har ek ko apni test Sheet par chalao.</li>
+      <li>Error Trigger wala workflow banao aur ek jaan-bujhkar fail hone wala test karo.</li>
+      <li>Sheet sharing settings check karo.</li>
+      <li>Consent line client ke form mein jodo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CH9 -->
+<section class="chapter" id="ch9">
+  <span class="ch-label">CHAPTER 09</span>
+  <h2>Gym owner ko yeh service kaise bechein</h2>
+  <p class="lead">Reel mein jo 10 se 15 hazaar rupaye ki baat thi, woh ek setup fee ka example hai, koi guarantee nahi. Aapko kitna milega yeh aapke shehar, aapke demo, gym ke size aur aapke kaam ki quality par depend karta hai. Is chapter mein woh process hai jisse aap yeh baat owner ke saamne sahi tareeke se rakh sakte ho.</p>
+
+  <h3>Owner ko kya bechna hai</h3>
+  <p>Owner n8n ya Google Sheet nahi kharid raha. Woh chaar cheezein kharid raha hai: roz ka bacha hua time, renewal miss hone se bacha hua paisa, pending payments ka saaf hisaab, aur member ko professional lagne wala reminder. Baat inhi par karo, tools par nahi.</p>
+
+  <h3>Demo ka tareeka (10 minute)</h3>
+  <ol>
+    <li>Apni dummy Sheet owner ke saamne kholo (5 fake members ke saath).</li>
+    <li>Front desk wala form bharke ek naya member add karo; Sheet mein row apne aap aati dikhao.</li>
+    <li>Ek member ki expiry aaj se 3 din baad ki rakho, workflow chalao, aur apne phone par WhatsApp reminder aata dikhao.</li>
+    <li>Payment test karke dikhao ki status Paid hua aur expiry aage badhi.</li>
+    <li>Daily report ka email/message dikhao, aur poochho: "Aaj aapko yeh jaankari nikalne mein kitna time lagta?"</li>
+  </ol>
+
+  <h3>Pricing kaise tay karein</h3>
+  <p>Neeche ek example structure hai. Number badalna aapke haath mein hai:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Cheez</th><th>Example</th><th>Dhyan rakhne wali baat</th></tr></thead>
+    <tbody>
+      <tr><td>Setup fee (ek baar)</td><td>₹10,000 se ₹15,000</td><td>Isme sheet design, 4 workflows, WhatsApp template setup, testing aur 30 minute ki training shamil ho</td></tr>
+      <tr><td>Monthly maintenance (optional)</td><td>Aapka tay kiya hua chhota amount</td><td>Isme monitoring, chhote badlav aur error fix aate hain; alag likhit mein batao</td></tr>
+      <tr><td>Running costs</td><td>Client ke apne accounts se</td><td>n8n subscription ya server, WhatsApp messages ka kharch, payment gateway fees</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Running costs client ke naam par rakho:</strong> n8n, WhatsApp aur Google ke accounts gym owner ke naam par banao ya unhe ownership do. Isse client ko lagta hai ki system uska apna hai, aur aap par kharch ka bojh nahi aata. Yeh bhi likhit mein batao ki WhatsApp message ka kharch Meta ke rate se alag se lagega (<a href="#ch2">Chapter 2</a>).</p>
+
+  <h3>Proposal ka template</h3>
+  <div class="code"><div class="code-head"><span>proposal.md</span><button class="copy">Copy</button></div>
+<pre><code>**Gym Manager Automation: Proposal**
+
+**Client:** [Gym ka naam]
+**Scope:**
+1. Naye member ki entry Google Sheet mein apne aap
+2. Expiry se pehle WhatsApp reminder (approved template ke saath)
+3. Payment hone par status update
+4. Roz ki report (active, expired, pending payments)
+
+**Shamil nahi hai:** website, mobile app, biometric/attendance machine ka integration, ya kuch bhi jo upar list mein nahi hai
+
+**Setup fee:** ₹[amount], ek baar
+**Delivery time:** [X] din, jab client ke accounts aur WhatsApp approval taiyaar ho
+**Client ki zimmedari:** WhatsApp Business account verification, purane members ka data, ek test number
+**Running costs:** client ke accounts par, alag se
+**Support:** setup ke baad [X] din tak free bug fixes</code></pre></div>
+
+  <h3>Honest expectations</h3>
+  <ul>
+    <li>WhatsApp Business setup aur template approval mein kuch din lag sakte hain, jo aapke control mein nahi hai. Client ko shuru mein hi bata do.</li>
+    <li>Pehle client ke liye poora system banane mein aapko zyada time lagega. Doosre gym par yeh kaafi tez ho jaata hai, kyunki Sheet aur workflows reuse hote hain.</li>
+    <li>Koi bhi workflow client ko dene se pehle uske accounts, passwords aur API keys ek document mein likhkar handover karo.</li>
+    <li>Kaam ya kamai ki koi guarantee nahi hai. Shuruat mein 1 se 2 gyms ke saath kaam karke apna process pakka karo.</li>
+  </ul>
+
+  <div class="action-box">
+    <h3>Is chapter ka action</h3>
+    <ul class="checklist" data-group="ch9">
+      <li>Apna 10 minute ka demo ek baar kisi dost ke saamne practice karo.</li>
+      <li>Proposal template mein apna naam aur apni terms bharo.</li>
+      <li>Apne shehar ke 5 gyms ki list banao aur unke owners se demo ke liye 10 minute maango.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CHECKLIST + QUICK REF -->
+<section class="chapter" id="checklist">
+  <span class="ch-label">REFERENCE</span>
+  <h2>Complete implementation checklist</h2>
+  <ul class="checklist" data-group="final">
+    <li>n8n Cloud trial ya self-hosted Community Edition ready hai.</li>
+    <li>Google Sheet mein Members tab (12 columns) aur Dashboard tab bana hai.</li>
+    <li>Date columns plain text YYYY-MM-DD mein hain.</li>
+    <li>Workflow 1 (member entry) test ho chuka hai, duplicate phone par bhi.</li>
+    <li>WhatsApp template approved hai aur reminder test number par pahunch gaya.</li>
+    <li>Consent checkbox form mein hai.</li>
+    <li>Workflow 3 (payment update) ka test payment ho chuka hai aur double-event par expiry ek hi baar badhti hai.</li>
+    <li>Webhook signature verify ho raha hai.</li>
+    <li>Workflow 4 ki report ke numbers haath se gine hue numbers se match karte hain.</li>
+    <li>Error Trigger workflow set hai.</li>
+    <li>Saare workflows publish/activate hain aur timezone Asia/Kolkata hai.</li>
+    <li>Client ko accounts, ownership aur handover document mil gaya hai.</li>
+  </ul>
+
+  <h3>Quick-reference guide</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kaam</th><th>Node</th><th>Zaroori setting</th></tr></thead>
+    <tbody>
+      <tr><td>Form se member data lena</td><td>Form Trigger</td><td>Production URL front desk par bookmark karo</td></tr>
+      <tr><td>Roz fixed time par chalana</td><td>Schedule Trigger</td><td>Asia/Kolkata timezone, workflow publish</td></tr>
+      <tr><td>Sheet padhna aur likhna</td><td>Google Sheets</td><td>Phone se match karke Append or Update Row</td></tr>
+      <tr><td>Reminder bhejna</td><td>WhatsApp, Send Template</td><td>Approved template, parameters ka sahi order</td></tr>
+      <tr><td>Payment ki khabar lena</td><td>Webhook</td><td><code>payment_link.paid</code> event, signature verify</td></tr>
+      <tr><td>Date calculation</td><td>Code</td><td>Dates YYYY-MM-DD text mein</td></tr>
+      <tr><td>Galti ki khabar</td><td>Error Trigger</td><td>Har workflow ki settings mein jodo</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- MISTAKES + FAQ -->
+<section class="chapter" id="faq">
+  <span class="ch-label">REFERENCE</span>
+  <h2>Common mistakes to avoid</h2>
+  <ol>
+    <li>Asli members par testing karna. Hamesha apna test number use karo.</li>
+    <li>Dates ko Sheet ke default format mein chhod dena.</li>
+    <li>WhatsApp ke bina template wale free-form message se reminder bhejne ki koshish karna; yeh 24 ghante ki customer window ke baahar kaam nahi karta.</li>
+    <li>Template mein offer daalna aur phir Marketing rate par hairaan hona.</li>
+    <li>Webhook ko bina signature check ke chhod dena.</li>
+    <li>Workflow ko publish/activate karna bhool jana.</li>
+    <li>Client ke accounts apne naam par rakhna.</li>
+    <li>Scope likhit mein tay na karna.</li>
+  </ol>
+
+  <h3>FAQs</h3>
+  <details><summary>Kya coding aani zaroori hai?</summary><p>Nahi. Is ebook mein kuch chhote JavaScript snippets hain jo copy-paste karne hain. Bas field ke naam apne form ke hisaab se milane honge.</p></details>
+  <details><summary>Kya bina WhatsApp API ke reminder bhej sakte hain?</summary><p>Haan, email ya SMS ke zariye. Par is ebook ka promise WhatsApp reminder hai, aur uska official raasta WhatsApp Business Platform hai. Unofficial tareekon se number ban hone ka khatra hota hai.</p></details>
+  <details><summary>Ek gym ke liye n8n ke kitne executions lagenge?</summary><p>Workflow 2 aur 4 roz ek-ek baar chalte hain (lagbhag 60 executions per month), baaki member ki activity par depend karta hai. Zyadatar chhote gyms ke liye Starter plan ki limit kaafi rehni chahiye, par apna hisaab khud lagao.</p></details>
+  <details><summary>Agar owner Excel hi use karna chahe to?</summary><p>Google Sheet ko hi uska Excel samjhao; woh ek browser mein khulti hai aur owner ke phone par bhi dekh sakta hai. Purana Excel data copy karke Members tab mein paste kar do.</p></details>
+  <details><summary>Kya 10 se 15 hazaar rupaye pakka milenge?</summary><p>Nahi, yeh ek example hai. Charge aapke kaam, area aur client par depend karta hai.</p></details>
+</section>
+
+<!-- PLAN + CONCLUSION + SOURCES -->
+<section class="chapter" id="plan">
+  <span class="ch-label">WRAP-UP</span>
+  <h2>Final action plan</h2>
+  <div class="weeks">
+    <div class="week"><b>HAFTA 1</b><p>Chapter 2 aur 3: accounts banao, Sheet design karo, WhatsApp setup shuru karo</p></div>
+    <div class="week"><b>HAFTA 2</b><p>Chapter 4 aur 5: Workflow 1 aur 2 banao aur test karo</p></div>
+    <div class="week"><b>HAFTA 3</b><p>Chapter 6 aur 7: Workflow 3 aur 4 banao</p></div>
+    <div class="week"><b>HAFTA 4</b><p>Chapter 8 aur 9: edge-case testing, demo practice, pehle 5 gyms se baat</p></div>
+  </div>
+
+  <h3>Conclusion</h3>
+  <p>Gym Manager Automation chaar chhote workflows ka system hai jo ek gym owner ke teen sabse bade rozmarra ke kaam (member entry, renewal reminder, payment tracking aur report) apne aap kar deta hai. Aap yeh ebook follow karke pehle apne liye working system bana sakte ho, phir use ek service ki tarah pesh kar sakte ho. Jahan bhi pricing ya platform rules ki baat hai, official page ek baar zaroor check karo, kyunki yeh badalte rehte hain.</p>
+
+  <h3 id="sources">Sources</h3>
+  <p>Information ki as-of date 2026-11-13 hai. n8n aur WhatsApp ke prices secondary websites ke search results se liye gaye hain aur approximate hain; final kharch ke liye official pages dekho.</p>
+  <ul class="sources">
+    <li><a href="https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.whatsapp/" target="_blank" rel="noopener">n8n WhatsApp Business Cloud node <small>official docs ↗</small></a></li>
+    <li><a href="https://docs.n8n.io/integrations/builtin/trigger-nodes/n8n-nodes-base.googlesheetstrigger/" target="_blank" rel="noopener">n8n Google Sheets Trigger node <small>official docs ↗</small></a></li>
+    <li><a href="https://razorpay.com/docs/payments/payment-links/subscribe-to-webhooks" target="_blank" rel="noopener">Razorpay: Payment Links webhook events <small>official docs ↗</small></a></li>
+    <li><a href="https://razorpay.com/docs/webhooks/payment-links" target="_blank" rel="noopener">Razorpay: Payment Links webhook payloads <small>official docs ↗</small></a></li>
+    <li><a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener">Meta: WhatsApp Business Platform pricing <small>official ↗</small></a></li>
+    <li><a href="https://dupple.com/learn/n8n-pricing" target="_blank" rel="noopener">n8n pricing 2026 summary <small>secondary source ↗</small></a></li>
+    <li><a href="https://www.jetadmin.io/blog/n8n-pricing/" target="_blank" rel="noopener">n8n pricing comparison <small>secondary source ↗</small></a></li>
+    <li><a href="https://montymobile.com/blogs/whatsapp-business-api-pricing-in-india-inr-rates-gst-and-the-2026-currency-migration-deadline" target="_blank" rel="noopener">WhatsApp Business API India rates <small>secondary source ↗</small></a></li>
+    <li><a href="https://m.aisensy.com/blog/whatsapp-per-message-pricing-update-effective-january-1-2026/" target="_blank" rel="noopener">WhatsApp pricing update, 1 October 2026 notice <small>secondary source ↗</small></a></li>
+  </ul>
+</section>
+
+  </main>
+</div>
+
+<footer>
+  n8n Gym Manager Automation: Complete Setup Guide · Prepared by Sachin Prajapati · As of 13 Nov 2026
+</footer>
+
+<button class="icon-btn to-top" id="toTop" aria-label="Upar jao">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+(function(){
+  var store = {
+    get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+    set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  };
+
+  // Theme
+  var root=document.documentElement, saved=store.get('gm-theme');
+  if(saved) root.setAttribute('data-theme',saved);
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var dark = root.getAttribute('data-theme') ? root.getAttribute('data-theme')==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme',next); store.set('gm-theme',next);
+  });
+
+  // Checklists -> real checkboxes with persistence
+  var state={}; try{state=JSON.parse(store.get('gm-checks')||'{}')}catch(e){}
+  var boxes=[];
+  document.querySelectorAll('.checklist').forEach(function(ul){
+    var g=ul.dataset.group;
+    ul.querySelectorAll('li').forEach(function(li,i){
+      var id=g+'-'+i, text=li.innerHTML;
+      li.innerHTML='<label><input type="checkbox" data-id="'+id+'"><span>'+text+'</span></label>';
+      var cb=li.querySelector('input'); cb.checked=!!state[id]; boxes.push(cb);
+      cb.addEventListener('change',function(){ state[id]=cb.checked; store.set('gm-checks',JSON.stringify(state)); updateProg(); });
+    });
+  });
+  function updateProg(){
+    var done=boxes.filter(function(b){return b.checked}).length;
+    document.getElementById('progText').textContent=done+' / '+boxes.length+' tasks done';
+    document.getElementById('progBar').style.width=(boxes.length?done/boxes.length*100:0)+'%';
+  }
+  updateProg();
+
+  // Copy buttons
+  function copyText(t,btn){
+    var ok=function(){btn.textContent='Copied ✓';btn.classList.add('done');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('done')},1600)};
+    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(ok,fallback)}else fallback();
+    function fallback(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(ta)}
+  }
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var src = btn.hasAttribute('data-copy-prev') ? btn.closest('tr').querySelector('code.f') : btn.closest('.code').querySelector('pre code');
+      copyText(src.textContent,btn);
+    });
+  });
+
+  // Mobile menu
+  var toc=document.getElementById('toc'), scrim=document.getElementById('scrim'), mb=document.getElementById('menuBtn');
+  function setMenu(open){toc.classList.toggle('open',open);scrim.classList.toggle('show',open);mb.setAttribute('aria-expanded',open)}
+  mb.addEventListener('click',function(){setMenu(!toc.classList.contains('open'))});
+  scrim.addEventListener('click',function(){setMenu(false)});
+  toc.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setMenu(false)})});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
+
+  // Scrollspy + progress + to-top
+  var links=[].slice.call(toc.querySelectorAll('a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  var prog=document.getElementById('progress'), tt=document.getElementById('toTop');
+  tt.addEventListener('click',function(){scrollTo({top:0,behavior:'smooth'})});
+  function onScroll(){
+    var h=document.documentElement, max=h.scrollHeight-h.clientHeight;
+    prog.style.width=(max>0?h.scrollTop/max*100:0)+'%';
+    tt.classList.toggle('show',h.scrollTop>800);
+    var cur=0; secs.forEach(function(s,i){ if(s && s.getBoundingClientRect().top<140) cur=i; });
+    links.forEach(function(a,i){a.classList.toggle('active',i===cur)});
+  }
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+})();
+</script>
+</body>
+</html>
